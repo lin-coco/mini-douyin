@@ -66,11 +66,20 @@ git push origin dev-a
 
 pull Request  在github上请求合并
 
-![image-20230113142805464](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230113142805464.png)
+![image-20230113143645730](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230113143645730.png)
+选择自己的分支
+
+![image-20230113143737285](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230113143737285.png)
+
+![image-20230113143811885](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230113143811885.png)
+
+![image-20230113143834948](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230113143834948.png)
 
 ## 第七步
 
 （原则上项目经理）main分支 同意合并
+
+![image-20230113143934189](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230113143934189.png)
 
 ## 其他
 
