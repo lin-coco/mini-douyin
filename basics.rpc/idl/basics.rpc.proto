@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package douyin.core;
+option go_package="douyin/core";
+
+message GetUserRequest {
+  int64 user_id = 1;
+}
+message GetUserResponse {
+  int64 id = 1;
+  string name = 2;
+}
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+}
+message CreateUserResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  int64 id = 3;
+}
+message CheckUserRequest {
+  string username = 1;
+  string password = 2;
+}
+message CheckUserResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  int64 user_id =3;
+}
+
+message GetVideoRequest {
+  int64 latest_time = 1;
+}
+message GetVideoResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated Video video_list = 3;
+  int64 next_time = 4;
+}
+
+message Video {
+  int64 id = 1;
+  User user = 2;
+  string play_url = 3;
+  string cover_url = 4;
+  string title = 5;
+}
+message User {
+  int64 id = 1;
+  string name = 2;
+}
+
+message UploadVideoRequest {
+  int64 user_id = 1;
+  bytes data = 2;
+  string title = 3;
+
+}
+message UploadVideoResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+}
+
+message GetVideosByUserIdRequest {
+  int64 user_id = 1;
+}
+
+message GetVideosByUserIdResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated Video video_list = 3;
+}
+
+message GetVideoListByIdsRequest {
+  repeated int64 video_id_list = 1;
+}
+message GetVideoListByIdsResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated Video video_list = 3;
+}
+
+message GetUserListByIdsRequest {
+  repeated int64 user_id_list = 1;
+}
+message GetUserListByIdsResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated User user_list = 3;
+}
+
+service BasicsService {
+  //api.service needed
+  rpc GetUserInfoById(GetUserRequest) returns(GetUserResponse);
+  rpc CreateUser(CreateUserRequest) returns(CreateUserResponse);
+  rpc CheckUser(CheckUserRequest) returns(CheckUserResponse);
+
+  rpc GetVideo(GetVideoRequest) returns(GetVideoResponse);
+  rpc UploadVideo(UploadVideoRequest) returns(UploadVideoResponse);
+  rpc GetVideosByUserId(GetVideosByUserIdRequest) returns(GetVideosByUserIdResponse);
+
+  //interaction.rpc needed
+  rpc GetVideoListByIds(GetVideoListByIdsRequest) returns(GetVideoListByIdsResponse);
+  //society.rpc needed
+  rpc GetUserListByIds(GetUserListByIdsRequest) returns(GetUserListByIdsResponse);
+}
