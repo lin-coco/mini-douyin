@@ -87,22 +87,22 @@ message DouyinMessageActionResponse {
 service SocietyService {
   //关系操作
   rpc RelationAction(DouyinRelationActionRequest) returns(DouyinRelationActionResponse) {
-    option (api.post) = "/douyin/relation/action";
+    option (api.post) = "/douyin/relation/action/";
   }
   //用户关注列表
   rpc RelationFollowList(DouyinRelationFollowListRequest) returns(DouyinRelationFollowListResponse) {
-    option (api.get) = "/douyin/relation/follow/list";
+    option (api.get) = "/douyin/relation/follow/list/";
   }
   //用户粉丝列表
   rpc RelationFollowerList(DouyinRelationFollowerListRequest) returns(DouyinRelationFollowerListResponse) {
-    option (api.get) = "/douyin/relation/follower/list";
+    option (api.get) = "/douyin/relation/follower/list/";
   }
   //用户好友列表
   rpc RelationFriendList(DouyinRelationFriendListRequest) returns(DouyinRelationFriendListResponse) {
-    option (api.get) = "/douyin/relation/friend/list";
+    option (api.get) = "/douyin/relation/friend/list/";
   }
   //消息方案一
-  //...不考虑
+  //...不考虑，好像读取云端消息记录的说明
   //消息方案二
   //...使用消息方案二
   //聊天记录

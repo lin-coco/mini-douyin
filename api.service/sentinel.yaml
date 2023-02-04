@@ -1,0 +1,15 @@
+version: "v1"
+sentinel:
+  app:
+    name: api.service
+    type: 0
+  log:
+    dir: "./sentinel/logs/csp"
+#    logger: "api.service/biz/sentinel/slog"
+    pid: false
+    metric:
+      maxFileCount: 14
+      flushIntervalSec: 1
+  stat:
+    system:
+      collectIntervalMs: 1000

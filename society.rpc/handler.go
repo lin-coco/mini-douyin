@@ -146,7 +146,7 @@ func (s *SocietyServiceImpl) FollowerList(ctx context.Context, req *second.Follo
 			Name:          user.Name,
 			FollowCount:   followCount,
 			FollowerCount: followerCount,
-			IsFollow:      true,
+			IsFollow:      false,
 		})
 	}
 	return &second.FollowerListResponse{
@@ -237,7 +237,7 @@ func (s *SocietyServiceImpl) SocietyInfo(ctx context.Context, req *second.Societ
 		return nil, err
 	}
 	isFollow := false
-	if count > 0 {
+	if count > 0 || myId == userId {
 		isFollow = true
 	}
 	return &second.SocietyInfoResponse{

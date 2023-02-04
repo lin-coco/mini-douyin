@@ -2,9 +2,7 @@ syntax = "proto3";
 package api.douyin.core;
 option go_package="api/douyin/core";
 
-
 import "api.proto";
-
 
 message DouyinFeedRequest {
   optional int64 latest_time = 1[(api.query)="latest_time"]; // 可选参数，限制返回视频的最新投稿时间戳，精确到秒，不填表示当前时间
@@ -32,7 +30,7 @@ message User {
   string name = 2; // 用户名称
   optional int64 follow_count = 3; // 关注总数
   optional int64 follower_count = 4; // 粉丝总数
-  bool is_follow = 5; // true-已关注，false-未关注
+  bool is_follow = 5; // true-已关注，false-未关注 , 如果是自己返回已关注
 }
 
 message DouyinUserRegisterRequest {
@@ -92,30 +90,26 @@ message DouyinPublishListResponse {
 service CoreService {
   // 视频流接口
   rpc FeedRequest(DouyinFeedRequest) returns(DouyinFeedResponse) {
-    option (api.get) = "/douyin/feed";
+    option (api.get) = "/douyin/feed/";
   }
   // 用户注册接口
   rpc RegisterRequest(DouyinUserRegisterRequest) returns(DouyinUserRegisterResponse) {
-    option (api.post) = "/douyin/user/register";
+    option (api.post) = "/douyin/user/register/";
   }
   // 用户登录接口
   rpc LoginRequest(DouyinUserLoginRequest) returns(DouyinUserLoginResponse) {
-    option (api.post) = "/douyin/user/login";
+    option (api.post) = "/douyin/user/login/";
   }
   // 用户信息
   rpc UserRequest(DouyinUserRequest) returns(DouyinUserResponse) {
-    option (api.get) = "/douyin/user";
+    option (api.get) = "/douyin/user/";
   }
   // 视频投稿
   rpc PublishActionRequest(DouyinPublishActionRequest) returns(DouyinPublishActionResponse) {
-    option (api.post) = "/douyin/publish/action";
+    option (api.post) = "/douyin/publish/action/";
   }
   // 发布列表
   rpc PublishListRequest(DouyinPublishListRequest) returns(DouyinPublishListResponse) {
-    option (api.get) = "/douyin/publish/list";
+    option (api.get) = "/douyin/publish/list/";
   }
 }
-
-
-
-
