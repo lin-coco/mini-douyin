@@ -19,17 +19,32 @@ func Register(r *server.Hertz) {
 	root := r.Group("/", rootMw()...)
 	{
 		_douyin := root.Group("/douyin", _douyinMw()...)
-		_douyin.GET("/feed", append(_feedrequestMw(), core.FeedRequest)...)
-		_douyin.GET("/user", append(_userrequestMw(), core.UserRequest)...)
+		{
+			_feed := _douyin.Group("/feed", _feedMw()...)
+			_feed.GET("/", append(_feedrequestMw(), core.FeedRequest)...)
+		}
 		{
 			_publish := _douyin.Group("/publish", _publishMw()...)
-			_publish.POST("/action", append(_publish_ctionrequestMw(), core.PublishActionRequest)...)
-			_publish.GET("/list", append(_publishlistrequestMw(), core.PublishListRequest)...)
+			{
+				_action := _publish.Group("/action", _actionMw()...)
+				_action.POST("/", append(_publish_ctionrequestMw(), core.PublishActionRequest)...)
+			}
+			{
+				_list := _publish.Group("/list", _listMw()...)
+				_list.GET("/", append(_publishlistrequestMw(), core.PublishListRequest)...)
+			}
 		}
 		{
 			_user := _douyin.Group("/user", _userMw()...)
-			_user.POST("/login", append(_loginrequestMw(), core.LoginRequest)...)
-			_user.POST("/register", append(_registerrequestMw(), core.RegisterRequest)...)
+			_user.GET("/", append(_userrequestMw(), core.UserRequest)...)
+			{
+				_login := _user.Group("/login", _loginMw()...)
+				_login.POST("/", append(_loginrequestMw(), core.LoginRequest)...)
+			}
+			{
+				_register := _user.Group("/register", _registerMw()...)
+				_register.POST("/", append(_registerrequestMw(), core.RegisterRequest)...)
+			}
 		}
 	}
 }

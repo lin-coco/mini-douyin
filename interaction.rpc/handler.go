@@ -72,6 +72,13 @@ func (s *InteractionServiceImpl) GetFavoriteList(ctx context.Context, req *first
 		videoId := userFavourite.VideoId
 		videoIdList = append(videoIdList, int64(videoId))
 	}
+	if len(videoIdList) == 0 {
+		return &first.GetFavoriteListResponse{
+			StatusCode: 0,
+			StatusMsg:  "success",
+			VideoList:  make([]*first.Video, 0, 0),
+		}, nil
+	}
 	res, err := BasicsService.GetVideoListByIds(ctx, &core.GetVideoListByIdsRequest{VideoIdList: videoIdList})
 	if err != nil {
 		log.Printf("BasicsService failed err:%v", err)

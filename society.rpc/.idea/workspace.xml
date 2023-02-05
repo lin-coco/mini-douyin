@@ -4,7 +4,43 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cb52d1b6-7290-4d5f-b783-eedc46be72bb" name="Changes" comment="" />
+    <list default="true" id="cb52d1b6-7290-4d5f-b783-eedc46be72bb" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../api.service/biz/sentinel/sentinel.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/biz/sentinel/slog/slog.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/prometheus.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.1.idx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.2.idx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.3.idx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.idx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/core/basics.api.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/core/basics.api.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/first/interaction.api.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/first/interaction.api.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/second/society.api.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/second/society.api.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/core/basics.api.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/core/basics.api.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/core/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/core/middleware.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/first/interaction.api.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/first/interaction.api.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/first/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/first/middleware.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/second/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/second/middleware.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/second/society.api.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/second/society.api.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/idl/basics.api.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/idl/basics.api.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/idl/interaction.api.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/idl/interaction.api.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/idl/society.api.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/idl/society.api.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api.service/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../basics.rpc/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../basics.rpc/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../basics.rpc/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/../basics.rpc/handler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../interaction.rpc/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../interaction.rpc/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../interaction.rpc/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/../interaction.rpc/handler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dal/model/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/dal/model/model.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/handler.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,6 +54,9 @@
     </option>
   </component>
   <component name="GOROOT" url="file:///usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -37,7 +76,7 @@
     &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/xueyeshang/Desktop/第五届字节跳动青训营/极简抖音/society.rpc&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/xueyeshang/Desktop/第五届字节跳动青训营/极简抖音/mini-douyin/society.rpc&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,

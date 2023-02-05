@@ -3,7 +3,6 @@ syntax = "proto3";
 package api.douyin.extra.first;
 option go_package="api/douyin/extra/first";
 
-
 import "api.proto";
 
 message DouyinFavoriteActionRequest {
@@ -77,18 +76,18 @@ message DouyinCommentListResponse {
 service InteractionService {
   //赞操作
   rpc FavoriteAction(DouyinFavoriteActionRequest) returns(DouyinFavoriteActionResponse) {
-    option (api.post) = "/douyin/favorite/action";
+    option (api.post) = "/douyin/favorite/action/";
   }
   //喜欢列表
   rpc FavoriteList(DouyinFavoriteListRequest) returns(DouyinFavoriteListResponse) {
-    option (api.get) = "/douyin/favorite/list";
+    option (api.get) = "/douyin/favorite/list/";
   }
   //评论操作
   rpc CommentAction(DouyinCommentActionRequest) returns(DouyinCommentActionResponse) {
-    option (api.post) = "/douyin/comment/action";
+    option (api.post) = "/douyin/comment/action/";
   }
   //视频评论列表
   rpc CommentList(DouyinCommentListRequest) returns(DouyinCommentListResponse) {
-    option (api.get) = "/douyin/comment/list";
+    option (api.get) = "/douyin/comment/list/";
   }
 }

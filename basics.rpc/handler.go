@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"log"
 	"time"
 )
@@ -247,6 +248,10 @@ func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRe
 
 // GetVideoListByIds implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) GetVideoListByIds(ctx context.Context, req *core.GetVideoListByIdsRequest) (resp *core.GetVideoListByIdsResponse, err error) {
+	if req == nil {
+		klog.Infof("req is nil failed")
+		return nil, errors.New("req is nil failed")
+	}
 	videoIdList := req.VideoIdList
 	videoList := make([]*core.Video, 0, len(videoIdList))
 	for _, videoId := range videoIdList {

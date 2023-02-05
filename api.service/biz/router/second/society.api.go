@@ -32,18 +32,30 @@ func Register(r *server.Hertz) {
 		}
 		{
 			_relation := _douyin.Group("/relation", _relationMw()...)
-			_relation.POST("/action", append(_relation_ctionMw(), second.RelationAction)...)
+			{
+				_action0 := _relation.Group("/action", _action0Mw()...)
+				_action0.POST("/", append(_relation_ctionMw(), second.RelationAction)...)
+			}
 			{
 				_follow := _relation.Group("/follow", _followMw()...)
-				_follow.GET("/list", append(_relationfollowlistMw(), second.RelationFollowList)...)
+				{
+					_list := _follow.Group("/list", _listMw()...)
+					_list.GET("/", append(_relationfollowlistMw(), second.RelationFollowList)...)
+				}
 			}
 			{
 				_follower := _relation.Group("/follower", _followerMw()...)
-				_follower.GET("/list", append(_relationfollowerlistMw(), second.RelationFollowerList)...)
+				{
+					_list0 := _follower.Group("/list", _list0Mw()...)
+					_list0.GET("/", append(_relationfollowerlistMw(), second.RelationFollowerList)...)
+				}
 			}
 			{
 				_friend := _relation.Group("/friend", _friendMw()...)
-				_friend.GET("/list", append(_relationfriendlistMw(), second.RelationFriendList)...)
+				{
+					_list1 := _friend.Group("/list", _list1Mw()...)
+					_list1.GET("/", append(_relationfriendlistMw(), second.RelationFriendList)...)
+				}
 			}
 		}
 	}

@@ -4,16 +4,22 @@ package main
 
 import (
 	"api.service/biz/rpc"
+	"api.service/biz/sentinel"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
 func Init() {
+	//rpc 服务初始化
 	rpc.InitRPC()
+	//sentinel
+	sentinel.InitSentinel()
 }
 
 func main() {
 	Init()
-	h := server.Default()
+	//监控
+	//h := server.Default(server.WithHostPorts("127.0.0.1:8888"), server.WithTracer(prometheus.NewServerTracer(":9091", "hertz")))
+	h := server.Default(server.WithHostPorts("127.0.0.1:8888"))
 	register(h)
 	h.Spin()
 }

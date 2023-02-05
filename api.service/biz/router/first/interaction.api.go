@@ -21,13 +21,25 @@ func Register(r *server.Hertz) {
 		_douyin := root.Group("/douyin", _douyinMw()...)
 		{
 			_comment := _douyin.Group("/comment", _commentMw()...)
-			_comment.POST("/action", append(_comment_ctionMw(), first.CommentAction)...)
-			_comment.GET("/list", append(_commentlistMw(), first.CommentList)...)
+			{
+				_action := _comment.Group("/action", _actionMw()...)
+				_action.POST("/", append(_comment_ctionMw(), first.CommentAction)...)
+			}
+			{
+				_list := _comment.Group("/list", _listMw()...)
+				_list.GET("/", append(_commentlistMw(), first.CommentList)...)
+			}
 		}
 		{
 			_favorite := _douyin.Group("/favorite", _favoriteMw()...)
-			_favorite.POST("/action", append(_favorite_ctionMw(), first.FavoriteAction)...)
-			_favorite.GET("/list", append(_favoritelistMw(), first.FavoriteList)...)
+			{
+				_action0 := _favorite.Group("/action", _action0Mw()...)
+				_action0.POST("/", append(_favorite_ctionMw(), first.FavoriteAction)...)
+			}
+			{
+				_list0 := _favorite.Group("/list", _list0Mw()...)
+				_list0.GET("/", append(_favoritelistMw(), first.FavoriteList)...)
+			}
 		}
 	}
 }
