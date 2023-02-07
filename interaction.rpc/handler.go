@@ -4,10 +4,13 @@ import (
 	"basics.rpc/kitex_gen/douyin/core"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"interaction.rpc/dal/model"
 	"interaction.rpc/dal/query"
 	first "interaction.rpc/kitex_gen/douyin/extra/first"
 	"log"
+	"time"
 )
 
 // InteractionServiceImpl implements the last service interface defined in the IDL.
@@ -29,6 +32,11 @@ func (s *InteractionServiceImpl) AddVideoFavorite(ctx context.Context, req *firs
 		if err != nil {
 			log.Printf("update userFavorite failed err:%v", err)
 		}
+	}
+	//redis
+	result, _ := RedisDB.Exists(ctx, fmt.Sprintf("interaction.rpc:videoFavoriteCount:%d", videoId)).Result()
+	if result > 0 {
+		RedisDB.Incr(ctx, fmt.Sprintf("interaction.rpc:videoFavoriteCount:%d", videoId))
 	}
 	return &first.AddVideoFavoriteResponse{
 		StatusCode: 0,
@@ -53,6 +61,11 @@ func (s *InteractionServiceImpl) CancelVideoFavorite(ctx context.Context, req *f
 		}, nil
 	}
 	log.Printf("user has canceled")
+	//redis
+	result, _ := RedisDB.Exists(ctx, fmt.Sprintf("interaction.rpc:videoFavoriteCount:%d", videoId)).Result()
+	if result > 0 {
+		RedisDB.Decr(ctx, fmt.Sprintf("interaction.rpc:videoFavoriteCount:%d", videoId))
+	}
 	return &first.CancelVideoFavoriteResponse{
 		StatusCode: 0,
 		StatusMsg:  "success"}, nil
@@ -146,6 +159,11 @@ func (s *InteractionServiceImpl) AddComment(ctx context.Context, req *first.AddC
 		log.Printf("create comment failed err:%v", err)
 		return nil, err
 	}
+	//redis
+	result, _ := RedisDB.Exists(ctx, fmt.Sprintf("interaction.rpc:videoCommentCount:%d", videoId)).Result()
+	if result > 0 {
+		RedisDB.Incr(ctx, fmt.Sprintf("interaction.rpc:videoCommentCount:%d", videoId))
+	}
 	return &first.AddCommentResponse{
 		StatusCode: 0,
 		StatusMsg:  "success",
@@ -162,12 +180,21 @@ func (s *InteractionServiceImpl) AddComment(ctx context.Context, req *first.AddC
 func (s *InteractionServiceImpl) DeleteComment(ctx context.Context, req *first.DeleteCommentRequest) (resp *first.DeleteCommentResponse, err error) {
 	commentId := req.CommentId
 
+	comment, err := Q.Comment.Where(query.Comment.ID.Eq(uint(commentId))).Select(query.Comment.ToVideoId).First()
+	if err != nil {
+		log.Printf("delete comment failed commentId:%d err:%v", commentId, err)
+		return nil, err
+	}
 	_, err = Q.Comment.Where(query.Comment.ID.Eq(uint(commentId))).Delete()
 	if err != nil {
 		log.Printf("delete comment failed commentId:%d err:%v", commentId, err)
 		return nil, err
 	}
-
+	//redis
+	result, _ := RedisDB.Exists(ctx, fmt.Sprintf("interaction.rpc:videoCommentCount:%d", comment.ToVideoId)).Result()
+	if result > 0 {
+		RedisDB.Decr(ctx, fmt.Sprintf("interaction.rpc:videoCommentCount:%d", comment.ToVideoId))
+	}
 	return &first.DeleteCommentResponse{
 		StatusCode: 0,
 		StatusMsg:  "success",
@@ -177,7 +204,7 @@ func (s *InteractionServiceImpl) DeleteComment(ctx context.Context, req *first.D
 // CommentList implements the InteractionServiceImpl interface.
 func (s *InteractionServiceImpl) CommentList(ctx context.Context, req *first.CommentListRequest) (resp *first.CommentListResponse, err error) {
 	videoId := req.VideoId
-	comments, err := Q.Comment.Where(query.Comment.ToVideoId.Eq(uint(videoId))).Order().Find()
+	comments, err := Q.Comment.Where(query.Comment.ToVideoId.Eq(uint(videoId))).Order(query.Comment.CreatedAt).Find()
 	if err != nil {
 		log.Printf("query comments failed videoId:%d err:%v", videoId, comments)
 		return nil, err
@@ -206,10 +233,24 @@ func (s *InteractionServiceImpl) CommentList(ctx context.Context, req *first.Com
 // GetVideoFavoriteCount implements the InteractionServiceImpl interface.
 func (s *InteractionServiceImpl) GetVideoFavoriteCount(ctx context.Context, req *first.GetVideoFavoriteCountRequest) (resp *first.GetVideoFavoriteCountResponse, err error) {
 	videoId := req.VideoId
-	count, err := Q.UserFavourite.Where(query.UserFavourite.VideoId.Eq(uint(videoId)), query.UserFavourite.Status.Eq(1)).Count()
+	count, err := RedisDB.Get(ctx, fmt.Sprintf("interaction.rpc:videoFavoriteCount:%d", videoId)).Int64()
+	if err != nil {
+		hlog.Infof("redis cache not exist || redis server failed")
+	} else {
+		return &first.GetVideoFavoriteCountResponse{
+			StatusCode:    0,
+			StatusMsg:     "success",
+			FavoriteCount: count,
+		}, nil
+	}
+	count, err = Q.UserFavourite.Where(query.UserFavourite.VideoId.Eq(uint(videoId)), query.UserFavourite.Status.Eq(1)).Count()
 	if err != nil {
 		log.Printf("video favorite count query failed err:%v", err)
 		return nil, err
+	}
+	err = RedisDB.Set(ctx, fmt.Sprintf("interaction.rpc:videoFavoriteCount:%d", videoId), count, time.Hour).Err()
+	if err != nil {
+		hlog.Infof("redis failed cache interaction.rpc:videoFavoriteCount")
 	}
 	return &first.GetVideoFavoriteCountResponse{
 		StatusCode:    0,
@@ -221,10 +262,24 @@ func (s *InteractionServiceImpl) GetVideoFavoriteCount(ctx context.Context, req 
 // GetVideoCommentCount implements the InteractionServiceImpl interface.
 func (s *InteractionServiceImpl) GetVideoCommentCount(ctx context.Context, req *first.GetVideoCommentCountRequest) (resp *first.GetVideoCommentCountResponse, err error) {
 	videoId := req.VideoId
-	count, err := Q.Comment.Where(query.Comment.ToVideoId.Eq(uint(videoId))).Count()
+	count, err := RedisDB.Get(ctx, fmt.Sprintf("interaction.rpc:videoCommentCount:%d", videoId)).Int64()
+	if err != nil {
+		hlog.Infof("redis cache not exist || redis server failed")
+	} else {
+		return &first.GetVideoCommentCountResponse{
+			StatusCode:   0,
+			StatusMsg:    "success",
+			CommentCount: count,
+		}, nil
+	}
+	count, err = Q.Comment.Where(query.Comment.ToVideoId.Eq(uint(videoId))).Count()
 	if err != nil {
 		log.Printf("video comment count query failed err:%v", err)
 		return nil, err
+	}
+	err = RedisDB.Set(ctx, fmt.Sprintf("interaction.rpc:videoCommentCount:%d", videoId), count, time.Hour).Err()
+	if err != nil {
+		hlog.Infof("redis failed cache interaction.rpc:videoCommentCount")
 	}
 	return &first.GetVideoCommentCountResponse{
 		StatusCode:   0,

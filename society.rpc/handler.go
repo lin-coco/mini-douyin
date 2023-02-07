@@ -3,11 +3,16 @@ package main
 import (
 	"basics.rpc/kitex_gen/douyin/core"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
+	"github.com/redis/go-redis/v9"
 	"log"
 	"society.rpc/dal/model"
 	"society.rpc/dal/query"
 	second "society.rpc/kitex_gen/douyin/extra/second"
+	"time"
 )
 
 // SocietyServiceImpl implements the last service interface defined in the IDL.
@@ -259,12 +264,63 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 	if myUserId == friendUserId {
 		return nil, errors.New("myUserId = friendUserId error")
 	}
+	result, err := RedisDB.LRange(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), 0, -1).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			klog.Infof("redis not cache society.rpc:messagechat")
+		} else {
+			klog.Infof("redis failed society.rpc:messagechat")
+		}
+	} else {
+		messages := make([]*second.Message, 0, len(result))
+		for _, ms := range result {
+			m := new(second.Message)
+			err := json.Unmarshal([]byte(ms), m)
+			if err != nil {
+				klog.Infof("message unmarshal failed")
+				continue
+			}
+			messages = append(messages, m)
+		}
+		return &second.MessageChatResponse{
+			StatusCode:  0,
+			StatusMsg:   "success",
+			MessageList: messages,
+		}, nil
+	}
+	result, err = RedisDB.LRange(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", friendUserId, myUserId), 0, -1).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			klog.Infof("redis not cache society.rpc:messagechat")
+		} else {
+			klog.Infof("redis failed society.rpc:messagechat")
+		}
+	} else {
+		messages := make([]*second.Message, 0, len(result))
+		for _, ms := range result {
+			m := new(second.Message)
+			err := json.Unmarshal([]byte(ms), m)
+			if err != nil {
+				klog.Infof("message unmarshal failed")
+				continue
+			}
+			messages = append(messages, m)
+		}
+		return &second.MessageChatResponse{
+			StatusCode:  0,
+			StatusMsg:   "success",
+			MessageList: messages,
+		}, nil
+	}
+
 	messageChats, err := Q.MessageChat.Where(query.MessageChat.FromUserId.In(uint(myUserId), uint(friendUserId)), query.MessageChat.ToUserId.In(uint(myUserId), uint(friendUserId))).Order(query.MessageChat.CreatedAt).Find()
 	if err != nil {
 		log.Printf("myId:%d friendId:%d query message chat failed err:%v", myUserId, friendUserId, err)
 		return nil, err
 	}
+
 	if len(messageChats) == 0 {
+		//RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:fromUserId%dToUserId%d", myUserId, friendUserId), time.Hour)
 		return &second.MessageChatResponse{
 			StatusCode:  0,
 			StatusMsg:   "success",
@@ -272,16 +328,21 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 		}, nil
 	}
 	messages := make([]*second.Message, 0, len(messageChats))
+	redMsgs := make([]string, 0, len(messageChats))
 	for _, chat := range messageChats {
 		createTime := chat.CreatedAt.Format("2006-01-02 15:04")
-		messages = append(messages, &second.Message{
+		msg := &second.Message{
 			Id:         int64(chat.ID),
 			FromUserId: int64(chat.FromUserId),
 			ToUserId:   int64(chat.ToUserId),
 			Content:    chat.MsgContent,
 			CreateTime: &createTime,
-		})
+		}
+		messages = append(messages, msg)
+		msgByte, _ := json.Marshal(msg)
+		redMsgs = append(redMsgs, string(msgByte))
 	}
+	RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), redMsgs, time.Hour)
 
 	return &second.MessageChatResponse{
 		StatusCode:  0,
@@ -301,14 +362,43 @@ func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.Messag
 	if myUserId == friendUserId {
 		return nil, errors.New("myUserId = friendUserId error")
 	}
-	err = Q.MessageChat.Create(&model.MessageChat{
+	m := &model.MessageChat{
 		MsgContent: content,
 		FromUserId: uint(myUserId),
-		ToUserId:   uint(friendUserId),
-	})
+		ToUserId:   uint(friendUserId)}
+	err = Q.MessageChat.Create(m)
 	if err != nil {
 		log.Printf("message send failed FromUserId:%d ToUserId:%d MsgContent:%s", myUserId, friendUserId, content)
 		return nil, err
+	}
+	//redis
+	result, _ := RedisDB.Exists(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId)).Result()
+	if result > 0 {
+		createTime := m.CreatedAt.Format("2006-01-02 15:04")
+		//存在
+		sM := &second.Message{
+			Id:         int64(m.ID),
+			FromUserId: int64(m.FromUserId),
+			ToUserId:   int64(m.ToUserId),
+			Content:    m.MsgContent,
+			CreateTime: &createTime,
+		}
+		bytes, _ := json.Marshal(sM)
+		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), string(bytes))
+	}
+	result, _ = RedisDB.Exists(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", friendUserId, myUserId)).Result()
+	if result > 0 {
+		createTime := m.CreatedAt.Format("2006-01-02 15:04")
+		//存在
+		sM := &second.Message{
+			Id:         int64(m.ID),
+			FromUserId: int64(m.FromUserId),
+			ToUserId:   int64(m.ToUserId),
+			Content:    m.MsgContent,
+			CreateTime: &createTime,
+		}
+		bytes, _ := json.Marshal(sM)
+		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), string(bytes))
 	}
 	return &second.MessageSendResponse{
 		StatusCode: 0,

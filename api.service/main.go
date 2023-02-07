@@ -3,6 +3,7 @@
 package main
 
 import (
+	"api.service/biz/redis"
 	"api.service/biz/rpc"
 	"api.service/biz/sentinel"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -13,6 +14,8 @@ func Init() {
 	rpc.InitRPC()
 	//sentinel
 	sentinel.InitSentinel()
+	//redis 初始化
+	redis.InitRedis()
 }
 
 func main() {
