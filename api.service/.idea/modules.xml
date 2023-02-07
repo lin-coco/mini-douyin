@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/api.service.iml" filepath="$PROJECT_DIR$/.idea/api.service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basics.rpc/.idea/basics.rpc.iml" filepath="$PROJECT_DIR$/../basics.rpc/.idea/basics.rpc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../interaction.rpc/.idea/interaction.rpc.iml" filepath="$PROJECT_DIR$/../interaction.rpc/.idea/interaction.rpc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../society.rpc/.idea/society.rpc.iml" filepath="$PROJECT_DIR$/../society.rpc/.idea/society.rpc.iml" />
     </modules>
   </component>
 </project>

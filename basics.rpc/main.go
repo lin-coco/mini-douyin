@@ -7,6 +7,7 @@ import (
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
 	etcd "github.com/kitex-contrib/registry-etcd"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -28,6 +29,7 @@ func main() {
 	//初始化其他服务
 	DBInit()
 	OSSInit()
+	InitRedis()
 	//注册etcd
 	registry, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"})
 	if err != nil {
@@ -46,6 +48,8 @@ func main() {
 
 // 数据库
 var DB *gorm.DB
+
+var RedisDB *redis.Client
 
 // oss实例
 var OSSClient *oss.Client
@@ -90,4 +94,14 @@ func OSSInit() {
 		panic("failed to connect bucket")
 	}
 	OSSBucket = bucket
+}
+
+func InitRedis() {
+	redisDB := redis.NewClient(&redis.Options{
+		Addr:     "r-uf6tmk8szjtlbvorcypd.redis.rds.aliyuncs.com:6379",
+		Password: "syr1120@xyscom",
+		DB:       0,
+		PoolSize: 20,
+	})
+	RedisDB = redisDB
 }

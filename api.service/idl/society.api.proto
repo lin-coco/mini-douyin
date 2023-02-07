@@ -102,7 +102,7 @@ service SocietyService {
     option (api.get) = "/douyin/relation/friend/list/";
   }
   //消息方案一
-  //...不考虑，好像读取云端消息记录的说明
+  //...不考虑，好像没有读取云端消息记录的说明
   //消息方案二
   //...使用消息方案二
   //聊天记录

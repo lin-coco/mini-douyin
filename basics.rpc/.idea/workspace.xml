@@ -5,40 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="05ff5380-ecc6-475b-bb29-0a7b5a888c88" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../api.service/biz/sentinel/sentinel.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/biz/sentinel/slog/slog.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/prometheus.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.1" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.1.idx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.2" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.2.idx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.3.idx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../api.service/sentinel/logs/csp/api-service-metrics.log.2023-02-04.idx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/core/basics.api.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/core/basics.api.pb.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/first/interaction.api.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/first/interaction.api.pb.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/second/society.api.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/model/api/douyin/extra/second/society.api.pb.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/core/basics.api.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/core/basics.api.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/core/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/core/middleware.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/first/interaction.api.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/first/interaction.api.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/first/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/first/middleware.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/second/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/second/middleware.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/biz/router/second/society.api.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/biz/router/second/society.api.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/idl/basics.api.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/idl/basics.api.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/idl/interaction.api.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/idl/interaction.api.proto" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../api.service/idl/society.api.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/idl/society.api.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../api.service/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../api.service/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/handler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../interaction.rpc/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../interaction.rpc/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../interaction.rpc/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/../interaction.rpc/handler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../society.rpc/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../society.rpc/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../society.rpc/dal/model/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/../society.rpc/dal/model/model.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

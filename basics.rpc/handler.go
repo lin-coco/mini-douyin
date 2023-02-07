@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"log"
+	"os/exec"
 	"time"
 )
 
@@ -36,9 +37,20 @@ func (s *BasicsServiceImpl) CreateUser(ctx context.Context, req *core.CreateUser
 	// TODO: Your code here...
 	username := req.Username
 	password := req.Password
+	val := RedisDB.LRange(ctx, "basics.rpc:userexist", 0, -1).Val()
+	for _, s := range val {
+		if s == username {
+			return nil, errors.New("username has existed " + username)
+		}
+	}
 	first, _ := query.User.Where(query.User.Name.Eq(username)).First()
 	if first != nil {
 		log.Printf("username has existed %s", username)
+		//redis 缓存优化
+		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:userexist"), username, time.Hour).Err()
+		if err != nil {
+			klog.Infof("redis cache basics.rpc:userexist failed")
+		}
 		return nil, errors.New("username has existed " + username)
 	}
 	//密码加密
@@ -52,6 +64,10 @@ func (s *BasicsServiceImpl) CreateUser(ctx context.Context, req *core.CreateUser
 	if err != nil {
 		log.Fatalf("create failed username:%d, err:%v", username, err)
 		return nil, err
+	}
+	err = RedisDB.LRem(ctx, "basics.rpc:usernotexist", 1, username).Err()
+	if err != nil {
+		klog.Infof("redis rem usernotexist failed")
 	}
 	return &core.CreateUserResponse{
 		StatusCode: 0,
@@ -111,72 +127,46 @@ func (s *BasicsServiceImpl) GetVideo(ctx context.Context, req *core.GetVideoRequ
 
 // UploadVideo implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) UploadVideo(ctx context.Context, req *core.UploadVideoRequest) (resp *core.UploadVideoResponse, err error) {
-	// TODO: Your code here...
 	data := req.Data
 	title := req.Title
 	userId := req.UserId
 
-	//cmdIn, cmdInWriter := io.Pipe()
-	//_, err = io.Copy(cmdInWriter, bytes.NewReader(data))
-	//if err != nil {
-	//	log.Printf("coverurl failed err:%v", err)
-	//	return nil, err
-	//}
-	//err = cmdInWriter.Close()
-	//if err != nil {
-	//	log.Printf("coverurl failed err:%v", err)
-	//	return nil, err
-	//}
-	////封面图片字节数据
-	//cmd := exec.Command("ffmpeg", "-i", "-vframes", "1", "-q:v", "2", "-f", "image2", "pipe:1")
-	//cmd.Stdin = cmdIn
-	//var out bytes.Buffer
-	//cmd.Stdout = &out
-	//err = cmd.Run()
-	//if err != nil {
-	//	log.Printf("coverurl failed err:%v", err)
-	//	return nil, err
-	//}
-	//coverData := out.Bytes()
-
 	secondsEastOfUTC := int((8 * time.Hour).Seconds())
 	time.FixedZone("Bei jing Time", secondsEastOfUTC)
 	now := time.Now()
+	//上传视频
 	fileName := fmt.Sprintf("uservideo/%d%s%d-%d-%d|%d:%d:%d|%d.mp4", userId, title, now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second(), now.UnixMicro())
-	//coverFileName := fmt.Sprintf("uservideo/%d%s%d.%d.%d.jpg", userId, title, now.Year(), now.Month(), now.Day())
-	//fileName := "uservideo/" + strconv.Itoa(userId) + title + string(now.Year()) + "." + string(now.Month()) + "." + string(now.Day()) + ".mp4"
-	//wg := sync.WaitGroup{}
-	//wg.Add(2)
-	//b := atomic.Bool{}
-	//func() {
 	err = OSSBucket.PutObject(fileName, bytes.NewReader(data))
 	if err != nil {
 		log.Printf("upload failed err:%v", err)
-		//b.Store(true)
 		return nil, err
 	}
-	//wg.Done()
-	//}()
-	//go func() {
-	//err = OSSBucket.PutObject(coverFileName, bytes.NewReader(coverData))
-	//if err != nil {
-	//	log.Printf("upload failed err:%v", err)
-	//	//b.Store(true)
-	//	return nil, err
-	//}
-	//wg.Done()
-	//}()
-	//wg.Wait()
-	//if b.Load() {
-	//	log.Printf("upload failed err:%v", err)
-	//	return nil, err
-	//}
-
+	//上传封面
+	cmd := exec.Command("ffmpeg", "-i", "/Users/xueyeshang/Desktop/第五届字节跳动青训营/极简抖音/测试数据/v0d00fg10000cfd3bdbc77uaaea7kuv0.MP4", "-vframes", "1", "-q:v", "2", "-f", "image2", "pipe:1")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// Decode the image data from the FFmpeg output
+	imgData := out.Bytes()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	coverFileName := fmt.Sprintf("uservideo/%d%s%d-%d-%d|%d:%d:%d|%d.jpg", userId, title, now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second(), now.UnixMicro())
+	err = OSSBucket.PutObject(coverFileName, bytes.NewReader(imgData))
+	if err != nil {
+		log.Printf("upload failed err:%v", err)
+		return nil, err
+	}
 	err = query.Q.Video.Create(&model.Video{
-		UserId:  uint(userId),
-		PlayUrl: OSSBaseUrl + fileName,
-		//CoverUrl: OSSBaseUrl + coverFileName,
-		Title: title,
+		UserId:   uint(userId),
+		PlayUrl:  OSSBaseUrl + fileName,
+		CoverUrl: OSSBaseUrl + coverFileName,
+		Title:    title,
 	})
 	if err != nil {
 		log.Printf("create video failed err:%v", err)
@@ -224,9 +214,22 @@ func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRe
 	username := req.Username
 	password := req.Password
 
+	val := RedisDB.LRange(ctx, "basics.rpc:usernotexist", 0, -1).Val()
+	for _, s := range val {
+		if s == username {
+			return &core.CheckUserResponse{
+				StatusCode: 1,
+				StatusMsg:  "username is not effective",
+			}, errors.New("username is not effective")
+		}
+	}
 	user, _ := query.Q.User.Where(query.User.Name.Eq(username)).First()
 	if user == nil {
 		log.Printf("query user failed username:%s err:%v", username, err)
+		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:usernotexist"), username, time.Hour).Err()
+		if err != nil {
+			klog.Infof("redis cache basics.rpc:usernotexist failed")
+		}
 		return &core.CheckUserResponse{
 			StatusCode: 1,
 			StatusMsg:  "username is not effective",
