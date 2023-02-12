@@ -5,7 +5,6 @@ package first
 import (
 	first "api.service/biz/model/api/douyin/extra/first"
 	"api.service/biz/rpc"
-	"api.service/biz/utils"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -26,23 +25,18 @@ func FavoriteAction(ctx context.Context, c *app.RequestContext) {
 	}
 	resp := new(first.DouyinFavoriteActionResponse)
 
-	token := req.Token
 	videoId := req.VideoId
 	actionType := req.ActionType
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
+	myId := c.GetInt64("myId")
 	if actionType == 1 {
-		_, err := rpc.InteractionService.AddVideoFavorite(ctx, &interaction.AddVideoFavoriteRequest{VideoId: videoId, UserId: claims.UserId})
+		_, err := rpc.InteractionService.AddVideoFavorite(ctx, &interaction.AddVideoFavoriteRequest{VideoId: videoId, UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
 	} else if actionType == 2 {
-		_, err := rpc.InteractionService.CancelVideoFavorite(ctx, &interaction.CancelVideoFavoriteRequest{VideoId: videoId, UserId: claims.UserId})
+		_, err := rpc.InteractionService.CancelVideoFavorite(ctx, &interaction.CancelVideoFavoriteRequest{VideoId: videoId, UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())
@@ -70,14 +64,9 @@ func FavoriteList(ctx context.Context, c *app.RequestContext) {
 	}
 	resp := new(first.DouyinFavoriteListResponse)
 
-	token := req.Token
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	if userId != claims.UserId {
+	myId := c.GetInt64("myId")
+	if userId != myId {
 		resp.StatusCode = 1
 		resp.StatusMsg = new(string)
 		*resp.StatusMsg = "No permissions"
@@ -94,7 +83,7 @@ func FavoriteList(ctx context.Context, c *app.RequestContext) {
 	videoList := favoriteListResponse.VideoList
 	videos := make([]*first.Video, 0, len(videoList))
 	for _, video := range videoList {
-		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: userId})
+		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())
@@ -134,29 +123,23 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	token := req.Token
+	myId := c.GetInt64("myId")
 	actionType := req.ActionType
 	videoId := req.VideoId
 	commentText := req.CommentText
 	commentId := req.CommentId
 	resp := new(first.DouyinCommentActionResponse)
 
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-
 	if actionType == 1 {
 		//发布评论
-		addCommentResponse, err := rpc.InteractionService.AddComment(ctx, &interaction.AddCommentRequest{UserId: claims.UserId, VideoId: videoId, CommentText: *commentText})
+		addCommentResponse, err := rpc.InteractionService.AddComment(ctx, &interaction.AddCommentRequest{UserId: myId, VideoId: videoId, CommentText: *commentText})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
 		comment := addCommentResponse.Comment
-		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: comment.User.Id})
+		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: comment.User.Id})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())
@@ -186,7 +169,7 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
-		if commentByIdResponse.UserId != claims.UserId {
+		if commentByIdResponse.UserId != myId {
 			hlog.Infof("auth failed")
 			c.String(consts.StatusBadRequest, "auth failed.")
 			return
@@ -218,9 +201,8 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	//所有用户可查看
-	token := req.Token
 	videoId := req.VideoId
-	claims, err := utils.ParseToken(token)
+	myId := c.GetInt64("myId")
 	isLogin := false
 	if err != nil {
 		hlog.Infof("token parse failed。not logined")
@@ -243,7 +225,7 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 	for _, comment := range comments {
 		var societyInfoResponse *society.SocietyInfoResponse
 		if isLogin {
-			societyInfoResponse, err = rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: comment.User.Id})
+			societyInfoResponse, err = rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: comment.User.Id})
 			if err != nil {
 				hlog.Infof("InteractionService failed err:%v", err)
 				c.String(consts.StatusInternalServerError, err.Error())

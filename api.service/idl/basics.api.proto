@@ -67,9 +67,9 @@ message DouyinUserResponse {
 }
 
 message DouyinPublishActionRequest {
-  string token = 1[(api.body)="token"]; // 用户鉴权token
-  bytes data = 2[(api.body)="data"]; // 视频数据
-  string title = 3[(api.body)="title"]; // 视频标题
+  string token = 1[(api.form)="token"]; // 用户鉴权token
+  bytes data = 2[(api.form)="data"]; // 视频数据
+  string title = 3[(api.form)="title"]; // 视频标题
 }
 message DouyinPublishActionResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
@@ -84,6 +84,10 @@ message DouyinPublishListResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
   optional string status_msg = 2; // 返回状态描述 12
   repeated Video video_list = 3; // 用户发布的视频列表
+}
+
+message DouyinToken {
+  string token = 2[(api.query)="token"]; // 用户鉴权token 如果token没有值就取tokenF
 }
 
 

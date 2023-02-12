@@ -22,17 +22,17 @@ func InitSentinel() {
 		},
 		{
 			Resource:               "core_service",
-			Threshold:              3,
+			Threshold:              50,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		}, {
 			Resource:               "interaction_service",
-			Threshold:              3,
+			Threshold:              50,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		}, {
 			Resource:               "society_service",
-			Threshold:              3,
+			Threshold:              50,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		},

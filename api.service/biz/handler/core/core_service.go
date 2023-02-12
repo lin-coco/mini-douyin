@@ -203,18 +203,8 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 
 	resp := new(core.DouyinUserResponse)
 
-	token := req.Token
+	myId := c.GetInt64("myId")
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	//if claims.UserId != userId {
-	//	resp.StatusCode = 1
-	//	*resp.StatusMsg = "Authentication failed"
-	//	c.JSON(consts.StatusOK, resp)
-	//}
 	res, err := rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: userId})
 	if err != nil {
 		resp.StatusCode = 1
@@ -222,7 +212,7 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 		*resp.StatusMsg = err.Error()
 		c.String(consts.StatusInternalServerError, err.Error())
 	}
-	res2, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: userId})
+	res2, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 	if err != nil {
 		resp.StatusCode = 1
 		resp.StatusMsg = new(string)
@@ -243,7 +233,7 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 }
 
 // PublishActionRequest .
-// @router /douyin/publish/action [POST]
+// @router /douyin/publish/action/ [POST]
 func PublishActionRequest(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req core.DouyinPublishActionRequest
@@ -253,7 +243,6 @@ func PublishActionRequest(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	req.Token = form.Value["token"][0]
 	req.Title = form.Value["title"][0]
 	file, err := form.File["data"][0].Open()
 	if err != nil {
@@ -272,19 +261,12 @@ func PublishActionRequest(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	token := req.Token
 	title := req.Title
 	data := req.Data
 	resp := new(core.DouyinPublishActionResponse)
 
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		hlog.Infof("Token parse failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	userId := claims.UserId
-	_, err = rpc.BasicsService.UploadVideo(ctx, &basics.UploadVideoRequest{UserId: userId, Data: data, Title: title})
+	myId := c.GetInt64("myId")
+	_, err = rpc.BasicsService.UploadVideo(ctx, &basics.UploadVideoRequest{UserId: myId, Data: data, Title: title})
 	if err != nil {
 		hlog.Infof("BasicsService failed err:%v\n", err)
 		c.String(consts.StatusInternalServerError, err.Error())
@@ -306,14 +288,8 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	token := req.Token
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		hlog.Infof("Token parse failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
+	myId := c.GetInt64("myId")
 	resp := new(core.DouyinPublishListResponse)
 	videosByUserIdResp, err := rpc.BasicsService.GetVideosByUserId(ctx, &basics.GetVideosByUserIdRequest{UserId: userId})
 	if err != nil {
@@ -336,14 +312,14 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
-		isFavoriteResponse, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: claims.UserId})
+		isFavoriteResponse, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
 
-		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: userId})
+		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
 			c.String(consts.StatusInternalServerError, err.Error())

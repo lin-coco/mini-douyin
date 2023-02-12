@@ -4,7 +4,6 @@ package second
 
 import (
 	"api.service/biz/rpc"
-	"api.service/biz/utils"
 	"context"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	society "society.rpc/kitex_gen/douyin/extra/second"
@@ -24,42 +23,36 @@ func RelationAction(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	token := req.Token
 	toUserId := req.ToUserId
 	actionType := req.ActionType
 	resp := new(second.DouyinRelationActionResponse)
 
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
+	myId := c.GetInt64("myId")
 	if actionType == 1 {
 		//关注
-		_, err := rpc.SocietyService.ConcernAction(ctx, &society.ConcernActionRequest{FromUserId: claims.UserId, ToUserId: toUserId})
+		_, err := rpc.SocietyService.ConcernAction(ctx, &society.ConcernActionRequest{FromUserId: myId, ToUserId: toUserId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v", err)
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
-		resp.StatusCode = 0
-		resp.StatusMsg = new(string)
-		*resp.StatusMsg = "success"
 	} else if actionType == 2 {
 		//取消关注
-		_, err := rpc.SocietyService.CancelConcernAction(ctx, &society.CancelConcernActionRequest{FromUserId: claims.UserId, ToUserId: toUserId})
+		_, err := rpc.SocietyService.CancelConcernAction(ctx, &society.CancelConcernActionRequest{FromUserId: myId, ToUserId: toUserId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v", err)
 			c.String(consts.StatusInternalServerError, err.Error())
 			return
 		}
-		resp.StatusCode = 0
-		resp.StatusMsg = new(string)
-		*resp.StatusMsg = "success"
 	} else {
 		c.String(consts.StatusBadRequest, "action type valied")
 		return
 	}
+	resp.StatusCode = 0
+	resp.StatusMsg = new(string)
+	*resp.StatusMsg = "success"
+	c.Set("actionType", actionType)
+	c.Set("toUserId", toUserId)
 	c.JSON(consts.StatusOK, resp)
 }
 
@@ -73,20 +66,16 @@ func RelationFollowList(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	token := req.Token
+	//myId := c.GetInt64("myId")
 	userId := req.UserId
 	resp := new(second.DouyinRelationFollowListResponse)
 
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	if claims.UserId != userId {
-		hlog.Infof("auth failed")
-		c.String(consts.StatusBadRequest, "auth failed.")
-		return
-	}
+	//权限打开
+	//if myId != userId {
+	//	hlog.Infof("auth failed")
+	//	c.String(consts.StatusBadRequest, "auth failed.")
+	//	return
+	//}
 	followListResponse, err := rpc.SocietyService.FollowList(ctx, &society.FollowListRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
@@ -108,6 +97,7 @@ func RelationFollowList(ctx context.Context, c *app.RequestContext) {
 	resp.StatusMsg = new(string)
 	*resp.StatusMsg = "success"
 	resp.UserList = userList
+
 	c.JSON(consts.StatusOK, resp)
 }
 
@@ -123,18 +113,14 @@ func RelationFollowerList(ctx context.Context, c *app.RequestContext) {
 	}
 	resp := new(second.DouyinRelationFollowerListResponse)
 
-	token := req.Token
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	if claims.UserId != userId {
-		hlog.Infof("auth failed")
-		c.String(consts.StatusBadRequest, "auth failed.")
-		return
-	}
+	//myId := c.GetInt64("myId")
+	//权限打开
+	//if myId != userId {
+	//	hlog.Infof("auth failed")
+	//	c.String(consts.StatusBadRequest, "auth failed.")
+	//	return
+	//}
 	followerListResponse, err := rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
@@ -171,14 +157,9 @@ func RelationFriendList(ctx context.Context, c *app.RequestContext) {
 	}
 	resp := new(second.DouyinRelationFriendListResponse)
 
-	token := req.Token
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	if claims.UserId != userId {
+	myId := c.GetInt64("myId")
+	if myId != userId {
 		hlog.Infof("auth failed")
 		c.String(consts.StatusBadRequest, "auth failed.")
 		return
@@ -220,20 +201,15 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 
 	resp := new(second.DouyinMessageChatResponse)
 
-	token := req.Token
 	toUserId := req.ToUserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	if claims.UserId == toUserId {
+	myId := c.GetInt64("myId")
+	if myId == toUserId {
 		hlog.Infof("fromUserId = toUserId error")
 		c.String(consts.StatusBadRequest, "fromUserId = toUserId error")
 		return
 	}
 
-	messageChatResponse, err := rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: claims.UserId, FriendUserId: toUserId})
+	messageChatResponse, err := rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
 		c.String(consts.StatusInternalServerError, err.Error())
@@ -270,16 +246,11 @@ func MessageAction(ctx context.Context, c *app.RequestContext) {
 
 	resp := new(second.DouyinMessageActionResponse)
 
-	token := req.Token
 	toUserId := req.ToUserId
 	actionType := req.ActionType
 	content := req.Content
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
-		return
-	}
-	if claims.UserId == toUserId {
+	myId := c.GetInt64("myId")
+	if myId == toUserId {
 		hlog.Infof("fromUserId = toUserId error")
 		c.String(consts.StatusBadRequest, "fromUserId = toUserId error")
 		return
@@ -287,7 +258,7 @@ func MessageAction(ctx context.Context, c *app.RequestContext) {
 
 	if actionType == 1 {
 		//发送消息
-		_, err := rpc.SocietyService.MessageSend(ctx, &society.MessageSendRequest{MyUserId: claims.UserId, FriendUserId: toUserId, Content: content})
+		_, err := rpc.SocietyService.MessageSend(ctx, &society.MessageSendRequest{MyUserId: myId, FriendUserId: toUserId, Content: content})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v", err)
 			c.String(consts.StatusInternalServerError, err.Error())
