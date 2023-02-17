@@ -20,6 +20,10 @@ type BasicsServiceImpl struct{}
 
 // GetUserInfoById implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) GetUserInfoById(ctx context.Context, req *core.GetUserRequest) (resp *core.GetUserResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	userId := req.UserId
 	user, err := query.Q.User.Where(query.User.ID.Eq(uint(userId))).First()
 	if err != nil {
@@ -34,7 +38,10 @@ func (s *BasicsServiceImpl) GetUserInfoById(ctx context.Context, req *core.GetUs
 
 // CreateUser implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) CreateUser(ctx context.Context, req *core.CreateUserRequest) (resp *core.CreateUserResponse, err error) {
-	// TODO: Your code here...
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	username := req.Username
 	password := req.Password
 	val := RedisDB.LRange(ctx, "basics.rpc:userexist", 0, -1).Val()
@@ -47,7 +54,8 @@ func (s *BasicsServiceImpl) CreateUser(ctx context.Context, req *core.CreateUser
 	if first != nil {
 		log.Printf("username has existed %s", username)
 		//redis 缓存优化
-		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:userexist"), username, time.Hour).Err()
+		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:userexist"), username).Err()
+		RedisDB.Expire(ctx, fmt.Sprintf("basics.rpc:userexist"), time.Hour)
 		if err != nil {
 			klog.Infof("redis cache basics.rpc:userexist failed")
 		}
@@ -78,6 +86,10 @@ func (s *BasicsServiceImpl) CreateUser(ctx context.Context, req *core.CreateUser
 
 // GetVideo implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) GetVideo(ctx context.Context, req *core.GetVideoRequest) (resp *core.GetVideoResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	var latestTime int64
 	if req != nil {
 		latestTime = req.LatestTime //秒级时间戳
@@ -127,6 +139,10 @@ func (s *BasicsServiceImpl) GetVideo(ctx context.Context, req *core.GetVideoRequ
 
 // UploadVideo implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) UploadVideo(ctx context.Context, req *core.UploadVideoRequest) (resp *core.UploadVideoResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	data := req.Data
 	title := req.Title
 	userId := req.UserId
@@ -180,6 +196,10 @@ func (s *BasicsServiceImpl) UploadVideo(ctx context.Context, req *core.UploadVid
 
 // GetVideosByUserId implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) GetVideosByUserId(ctx context.Context, req *core.GetVideosByUserIdRequest) (resp *core.GetVideosByUserIdResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	userId := req.UserId
 	videos, err := query.Q.Video.Where(query.Video.UserId.Eq(uint(userId))).Find()
 	if err != nil {
@@ -211,6 +231,10 @@ func (s *BasicsServiceImpl) GetVideosByUserId(ctx context.Context, req *core.Get
 
 // CheckUser implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRequest) (resp *core.CheckUserResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	username := req.Username
 	password := req.Password
 
@@ -226,7 +250,8 @@ func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRe
 	user, _ := query.Q.User.Where(query.User.Name.Eq(username)).First()
 	if user == nil {
 		log.Printf("query user failed username:%s err:%v", username, err)
-		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:usernotexist"), username, time.Hour).Err()
+		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:usernotexist"), username).Err()
+		RedisDB.Expire(ctx, fmt.Sprintf("basics.rpc:usernotexist"), time.Hour)
 		if err != nil {
 			klog.Infof("redis cache basics.rpc:usernotexist failed")
 		}
@@ -239,7 +264,7 @@ func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRe
 		return &core.CheckUserResponse{
 			StatusCode: 1,
 			StatusMsg:  "password is not effective",
-		}, errors.New("username is not effective")
+		}, errors.New("password is not effective")
 	}
 
 	return &core.CheckUserResponse{
@@ -251,9 +276,9 @@ func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRe
 
 // GetVideoListByIds implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) GetVideoListByIds(ctx context.Context, req *core.GetVideoListByIdsRequest) (resp *core.GetVideoListByIdsResponse, err error) {
-	if req == nil {
-		klog.Infof("req is nil failed")
-		return nil, errors.New("req is nil failed")
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
 	}
 	videoIdList := req.VideoIdList
 	videoList := make([]*core.Video, 0, len(videoIdList))
@@ -285,6 +310,10 @@ func (s *BasicsServiceImpl) GetVideoListByIds(ctx context.Context, req *core.Get
 
 // GetUserListByIds implements the BasicsServiceImpl interface.
 func (s *BasicsServiceImpl) GetUserListByIds(ctx context.Context, req *core.GetUserListByIdsRequest) (resp *core.GetUserListByIdsResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	if req == nil {
 		return &core.GetUserListByIdsResponse{
 			StatusCode: 0,
@@ -318,4 +347,13 @@ func (s *BasicsServiceImpl) GetUserListByIds(ctx context.Context, req *core.GetU
 		StatusMsg:  "success",
 		UserList:   userList,
 	}, nil
+}
+
+// 校验req是否为空，空值直接返回err
+func checkReq(req interface{}) error {
+	if req == nil {
+		klog.Warnf("req is nil please check other service")
+		return errors.New("req is nil please check other service")
+	}
+	return nil
 }

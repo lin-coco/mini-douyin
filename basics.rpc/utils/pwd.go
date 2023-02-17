@@ -16,5 +16,5 @@ func PasswordHash(pwd string) (string, error) {
 func PasswordVerify(pwd, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd))
 
-	return err != nil
+	return err == nil
 }

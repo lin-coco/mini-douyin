@@ -3,6 +3,7 @@ package main
 import (
 	"basics.rpc/kitex_gen/douyin/core/basicsservice"
 	"github.com/cloudwego/kitex/client"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/cloudwego/kitex/pkg/retry"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
@@ -15,6 +16,7 @@ import (
 	"interaction.rpc/dal/query"
 	first "interaction.rpc/kitex_gen/douyin/extra/first/interactionservice"
 	"log"
+	"os"
 	"time"
 )
 
@@ -35,8 +37,9 @@ func main() {
 	DBInit()
 	BasicsRPCInit()
 	InitRedis()
+	//LogInit()
 	//注册etcd
-	registry, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"})
+	registry, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,6 +62,15 @@ var RedisDB *redis.Client
 
 // basics.rpc
 var BasicsService basicsservice.Client
+
+func LogInit() {
+	f, err := os.OpenFile("./output.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	klog.SetOutput(f)
+}
 
 func DBInit() {
 	dsn := "xys:232020ctt@@tcp(rm-uf6e4xr978w748b9w7o.mysql.rds.aliyuncs.com:3306)/sql_test?charset=utf8mb4&parseTime=true&loc=Local"
