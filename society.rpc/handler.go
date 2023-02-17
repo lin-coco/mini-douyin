@@ -20,6 +20,10 @@ type SocietyServiceImpl struct{}
 
 // ConcernAction implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) ConcernAction(ctx context.Context, req *second.ConcernActionRequest) (resp *second.ConcernActionResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	fromUserId := req.FromUserId
 	toUserId := req.ToUserId
 	if fromUserId == toUserId {
@@ -49,6 +53,10 @@ func (s *SocietyServiceImpl) ConcernAction(ctx context.Context, req *second.Conc
 
 // CancelConcernAction implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) CancelConcernAction(ctx context.Context, req *second.CancelConcernActionRequest) (resp *second.CancelConcernActionResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	fromUserId := req.FromUserId
 	toUserId := req.ToUserId
 	relation, _ := Q.Relation.Where(query.Relation.FromUserId.Eq(uint(fromUserId)), query.Relation.ToUserId.Eq(uint(toUserId))).First()
@@ -69,6 +77,10 @@ func (s *SocietyServiceImpl) CancelConcernAction(ctx context.Context, req *secon
 
 // FollowList implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) FollowList(ctx context.Context, req *second.FollowListRequest) (resp *second.FollowListResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	userId := req.UserId
 	relations, err := Q.Relation.Where(query.Relation.FromUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Find()
 	if err != nil {
@@ -112,6 +124,10 @@ func (s *SocietyServiceImpl) FollowList(ctx context.Context, req *second.FollowL
 
 // FollowerList implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) FollowerList(ctx context.Context, req *second.FollowerListRequest) (resp *second.FollowerListResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	userId := req.UserId
 	relations, err := Q.Relation.Where(query.Relation.ToUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Find()
 	if err != nil {
@@ -163,6 +179,10 @@ func (s *SocietyServiceImpl) FollowerList(ctx context.Context, req *second.Follo
 
 // FriendList implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) FriendList(ctx context.Context, req *second.FriendListRequest) (resp *second.FriendListResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	userId := req.UserId
 	//先找我关注的
 	relations, err := Q.Relation.Where(query.Relation.FromUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Find()
@@ -224,6 +244,10 @@ func (s *SocietyServiceImpl) FriendList(ctx context.Context, req *second.FriendL
 
 // SocietyInfo implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) SocietyInfo(ctx context.Context, req *second.SocietyInfoRequest) (resp *second.SocietyInfoResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
 	myId := req.MyId
 	userId := req.UserId
 	followCount, err := Q.Relation.Where(query.Relation.FromUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Count()
@@ -256,8 +280,9 @@ func (s *SocietyServiceImpl) SocietyInfo(ctx context.Context, req *second.Societ
 
 // MessageChat implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.MessageChatRequest) (resp *second.MessageChatResponse, err error) {
-	if req == nil {
-		return nil, errors.New("req is nil")
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
 	}
 	myUserId := req.MyUserId
 	friendUserId := req.FriendUserId
@@ -342,8 +367,12 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 		msgByte, _ := json.Marshal(msg)
 		redMsgs = append(redMsgs, string(msgByte))
 	}
-	RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), redMsgs, time.Hour)
-
+	if len(redMsgs) == 0 {
+		klog.Infof("messagechat redis cache no send because list len is 0")
+	} else {
+		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), redMsgs)
+		RedisDB.Expire(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), time.Hour)
+	}
 	return &second.MessageChatResponse{
 		StatusCode:  0,
 		StatusMsg:   "success",
@@ -353,8 +382,9 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 
 // MessageSend implements the SocietyServiceImpl interface.
 func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.MessageSendRequest) (resp *second.MessageSendResponse, err error) {
-	if req == nil {
-		return nil, errors.New("req is nil")
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
 	}
 	myUserId := req.MyUserId
 	friendUserId := req.FriendUserId
@@ -385,6 +415,7 @@ func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.Messag
 		}
 		bytes, _ := json.Marshal(sM)
 		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), string(bytes))
+		RedisDB.Expire(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), time.Hour)
 	}
 	result, _ = RedisDB.Exists(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", friendUserId, myUserId)).Result()
 	if result > 0 {
@@ -399,9 +430,19 @@ func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.Messag
 		}
 		bytes, _ := json.Marshal(sM)
 		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), string(bytes))
+		RedisDB.Expire(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), time.Hour)
 	}
 	return &second.MessageSendResponse{
 		StatusCode: 0,
 		StatusMsg:  "success",
 	}, nil
+}
+
+// 校验req是否为空，空值直接返回err
+func checkReq(req interface{}) error {
+	if req == nil {
+		klog.Warnf("req is nil please check other service")
+		return errors.New("req is nil please check other service")
+	}
+	return nil
 }
