@@ -10,7 +10,7 @@ message CommonResponse {
 }
 
 message DouyinFeedRequest {
-  optional int64 latest_time = 1[(api.query)="latest_time"]; // 可选参数，限制返回视频的最新投稿时间戳，精确到秒，不填表示当前时间
+  optional int64 latest_time = 1[(api.query)="latest_time",(vd)="NotNegative($)"]; // 可选参数，限制返回视频的最新投稿时间戳，精确到秒，不填表示当前时间
   optional string token = 2[(api.query)="token"]; // 可选参数，登录用户设置
 }
 message DouyinFeedResponse {
@@ -39,8 +39,8 @@ message User {
 }
 
 message DouyinUserRegisterRequest {
-  string username = 1[(api.query)="username"]; //注册用户名，最长32个字符
-  string password = 2[(api.query)="password"]; //密码，最长32个字符
+  string username = 1[(api.query)="username",(vd)="NotStringDefault($)"]; //注册用户名，最长32个字符
+  string password = 2[(api.query)="password",(vd)="NotStringDefault($)"]; //密码，最长32个字符
 }
 
 message DouyinUserRegisterResponse {
@@ -51,8 +51,8 @@ message DouyinUserRegisterResponse {
 }
 
 message DouyinUserLoginRequest {
-  string username = 1[(api.query)="username"]; // 登录用户名
-  string password = 2[(api.query)="password"]; // 登录密码
+  string username = 1[(api.query)="username",(vd)="NotStringDefault($)"]; // 登录用户名
+  string password = 2[(api.query)="password",(vd)="NotStringDefault($)"]; // 登录密码
 }
 message DouyinUserLoginResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
@@ -62,8 +62,8 @@ message DouyinUserLoginResponse {
 }
 
 message DouyinUserRequest {
-  int64 user_id = 1[(api.query)="user_id"]; // 用户id
-  string token = 2[(api.query)="token"]; // 用户鉴权token 7
+  int64 user_id = 1[(api.query)="user_id",(vd)="GreaterZero($)"]; // 用户id
+  string token = 2[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token 7
 }
 message DouyinUserResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
@@ -72,9 +72,9 @@ message DouyinUserResponse {
 }
 
 message DouyinPublishActionRequest {
-  string token = 1[(api.form)="token"]; // 用户鉴权token
-  bytes data = 2[(api.form)="data"]; // 视频数据
-  string title = 3[(api.form)="title"]; // 视频标题
+  string token = 1[(api.form)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
+  bytes data = 2[(api.form)="data",(vd)="NotNil($)"]; // 视频数据
+  string title = 3[(api.form)="title",(vd)="NotStringDefault($)"]; // 视频标题
 }
 message DouyinPublishActionResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
@@ -82,8 +82,8 @@ message DouyinPublishActionResponse {
 }
 
 message DouyinPublishListRequest {
-  int64 user_id = 1[(api.query)="user_id"]; // 用户id
-  string token = 2[(api.query)="token"]; // 用户鉴权token
+  int64 user_id = 1[(api.query)="user_id",(vd)="GreaterZero($)"]; // 用户id
+  string token = 2[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
 }
 message DouyinPublishListResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
@@ -92,7 +92,7 @@ message DouyinPublishListResponse {
 }
 
 message DouyinToken {
-  string token = 2[(api.query)="token"]; // 用户鉴权token 如果token没有值就取tokenF
+  string token = 2[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token 如果token没有值就取tokenF
 }
 
 

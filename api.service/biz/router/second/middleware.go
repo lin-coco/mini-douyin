@@ -31,7 +31,7 @@ func rootMw() []app.HandlerFunc {
 			}),
 			hertzSentinel.WithServerBlockFallback(func(ctx context.Context, c *app.RequestContext) {
 				c.AbortWithStatusJSON(400, utils.H{
-					"status_code": 10222,
+					"status_code": 400,
 					"status_msg":  "too many request; the quota used up",
 				})
 			}),
@@ -57,7 +57,7 @@ func rootMw() []app.HandlerFunc {
 				form, err := c.MultipartForm()
 				if err != nil {
 					c.AbortWithStatusJSON(400, utils.H{
-						"status_code": 10333,
+						"status_code": 400,
 						"status_msg":  err.Error(),
 					})
 					hlog.Infof("finished %s err:%v", path, err)
@@ -69,7 +69,7 @@ func rootMw() []app.HandlerFunc {
 				err := c.BindAndValidate(&douyinToken)
 				if err != nil {
 					c.AbortWithStatusJSON(400, utils.H{
-						"status_code": 10333,
+						"status_code": 400,
 						"status_msg":  err.Error(),
 					})
 					hlog.Infof("finished %s err:%v", path, err)
@@ -80,7 +80,7 @@ func rootMw() []app.HandlerFunc {
 			if tokenString == "" {
 				err := errors.New("failed find token")
 				c.AbortWithStatusJSON(400, utils.H{
-					"status_code": 10333,
+					"status_code": 400,
 					"status_msg":  err.Error(),
 				})
 				hlog.Infof("finished %s err:%v", path, err)
@@ -89,7 +89,7 @@ func rootMw() []app.HandlerFunc {
 			claims, err := utils2.ParseToken(tokenString)
 			if err != nil {
 				c.AbortWithStatusJSON(400, utils.H{
-					"status_code": 10333,
+					"status_code": 400,
 					"status_msg":  err.Error(),
 				})
 				hlog.Infof("finished %s err:%v", path, err)
