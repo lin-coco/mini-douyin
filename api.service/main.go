@@ -8,6 +8,7 @@ import (
 	"api.service/biz/sentinel"
 	"api.service/biz/vd"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	prometheus "github.com/hertz-contrib/monitor-prometheus"
 )
 
 func Init() {
