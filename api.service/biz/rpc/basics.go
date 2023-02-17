@@ -3,6 +3,7 @@ package rpc
 import (
 	"basics.rpc/kitex_gen/douyin/core/basicsservice"
 	"github.com/cloudwego/kitex/client"
+	"github.com/cloudwego/kitex/pkg/loadbalance"
 	"github.com/cloudwego/kitex/pkg/retry"
 	etcd "github.com/kitex-contrib/registry-etcd"
 	trace "github.com/kitex-contrib/tracer-opentracing"
@@ -12,7 +13,7 @@ import (
 var BasicsService basicsservice.Client
 
 func initBasicsServiceRpc() {
-	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
+	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +24,9 @@ func initBasicsServiceRpc() {
 		client.WithConnectTimeout(50*time.Millisecond),    // conn timeout
 		client.WithFailureRetry(retry.NewFailurePolicy()), // retry
 		client.WithSuite(trace.NewDefaultClientSuite()),   // tracer
-		client.WithResolver(r))                            // resolver
+		client.WithResolver(r),                            // resolver
+		client.WithLoadBalancer(loadbalance.NewWeightedBalancer())) // 负载均衡)
+
 	if err != nil {
 		panic(err)
 	}

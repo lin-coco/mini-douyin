@@ -18,14 +18,22 @@ import (
 	"time"
 )
 
+func returnErrorResponse(code int32, msg string) core.CommonResponse {
+	return core.CommonResponse{
+		StatusCode: code,
+		StatusMsg:  msg,
+	}
+}
+
 // FeedRequest .
 // @router /douyin/feed [GET]
 func FeedRequest(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req core.DouyinFeedRequest
 	err = c.BindAndValidate(&req)
+	resp := new(core.DouyinFeedResponse)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	token := req.Token
@@ -36,7 +44,7 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 		claims, err = utils.ParseToken(*token)
 		if err != nil {
 			hlog.Infof("Token parse failed err:%v\n", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
 	}
@@ -46,13 +54,11 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 		latestTime = new(int64)
 		*latestTime = time.Now().Unix()
 	}
-	resp := new(core.DouyinFeedResponse)
-
 	res, err := rpc.BasicsService.GetVideo(ctx, &basics.GetVideoRequest{LatestTime: *latestTime})
 	if err != nil {
 		//log.Printf("BasicsService failed err:%v", err)
 		hlog.Infof("BasicsService failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
+		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -60,42 +66,60 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 	for _, video := range res.VideoList {
 		var societyInfoResp *society.SocietyInfoResponse
 		if isLogin {
+			if claims.UserId == 0 || video.User.Id == 0 {
+				hlog.Infof("claims.UserId or video.User.Id is null")
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "claims.UserId or video.User.Id is null"))
+				return
+			}
 			societyInfoResp, err = rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: video.User.Id})
 			if err != nil {
 				//log.Printf("SocietyService failed err:%v", err)
 				hlog.Infof("SocietyService failed err:%v\n", err)
-				c.String(consts.StatusInternalServerError, err.Error())
+				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 				return
 			}
 		} else {
+			if video.User.Id == 0 {
+				hlog.Infof("video.User.Id is null")
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "video.User.Id is null"))
+				return
+			}
 			societyInfoResp, err = rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: video.User.Id, UserId: video.User.Id})
 			if err != nil {
 				//log.Printf("SocietyService failed err:%v", err)
 				hlog.Infof("SocietyService failed err:%v\n", err)
-				c.String(consts.StatusInternalServerError, err.Error())
+				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 				return
 			}
 		}
+		if video.Id == 0 {
+			hlog.Infof("video.Id is null")
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "video.Id is null"))
+			return
+		}
 		favoriteCountResp, err := rpc.InteractionService.GetVideoFavoriteCount(ctx, &interaction.GetVideoFavoriteCountRequest{VideoId: video.Id})
 		if err != nil {
-			//log.Printf("InteractionService failed err:%v", err)
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
 		commentCountResp, err := rpc.InteractionService.GetVideoCommentCount(ctx, &interaction.GetVideoCommentCountRequest{VideoId: video.Id})
 		if err != nil {
-			//log.Printf("InteractionService failed err:%v", err)
 			hlog.Infof("InteractionService failed err:%v", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
 		isFavorite := false
 		if isLogin {
+			if claims.UserId == 0 || video.Id == 0 {
+				hlog.Infof("claims.UserId or video.Id is null")
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "claims.UserId or video.Id is null"))
+				return
+			}
 			isFavoriteResp, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: claims.UserId, VideoId: video.Id})
 			if err != nil {
 				hlog.Infof("InteractionService failed err:%v", err)
-				c.String(consts.StatusInternalServerError, err.Error())
+				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 				return
 			}
 			isFavorite = isFavoriteResp.IsFavorite
@@ -135,11 +159,16 @@ func RegisterRequest(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserRegisterRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	resp := new(core.DouyinUserRegisterResponse)
 
+	if req.Username == "" || req.Password == "" {
+		hlog.Warnf("register info is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "register info is null"))
+		return
+	}
 	res, err := rpc.BasicsService.CreateUser(ctx, &basics.CreateUserRequest{Username: req.Username, Password: req.Password})
 	if err != nil {
 		//log.Printf("register failed err:%v", err)
@@ -153,7 +182,7 @@ func RegisterRequest(ctx context.Context, c *app.RequestContext) {
 		token, err := utils.GenerateToken(res.Id)
 		if err != nil {
 			hlog.Infof("generate token failed err:%v\n", err.Error())
-			c.JSON(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
 		resp.Token = token
@@ -168,17 +197,21 @@ func LoginRequest(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserLoginRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 
 	resp := new(core.DouyinUserLoginResponse)
-
+	if req.Username == "" || req.Password == "" {
+		hlog.Infof("login info is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "login info is null"))
+		return
+	}
 	res, err := rpc.BasicsService.CheckUser(ctx, &basics.CheckUserRequest{Username: req.Username, Password: req.Password})
 	if err != nil {
 		//log.Printf("BasicsService failed err:%v", err)
 		hlog.Infof("BasicsService failed err:%v", err)
-		c.String(consts.StatusInternalServerError, err.Error())
+		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 		return
 	}
 	resp.StatusCode = 0
@@ -197,37 +230,37 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 
 	resp := new(core.DouyinUserResponse)
 
-	token := req.Token
+	myId := c.GetInt64("myId")
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		c.String(consts.StatusInternalServerError, err.Error())
+	if userId == 0 {
+		hlog.Infof("userId is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "userId is null"))
 		return
 	}
-	//if claims.UserId != userId {
-	//	resp.StatusCode = 1
-	//	*resp.StatusMsg = "Authentication failed"
-	//	c.JSON(consts.StatusOK, resp)
-	//}
 	res, err := rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: userId})
 	if err != nil {
 		resp.StatusCode = 1
 		resp.StatusMsg = new(string)
 		*resp.StatusMsg = err.Error()
-		c.String(consts.StatusInternalServerError, err.Error())
+		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 	}
-	res2, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: userId})
+	if userId == 0 || myId == 0 {
+		hlog.Infof("userId or myId is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "userId or myId is null"))
+		return
+	}
+	res2, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 	if err != nil {
 		resp.StatusCode = 1
 		resp.StatusMsg = new(string)
 		*resp.StatusMsg = err.Error()
-		c.String(consts.StatusInternalServerError, err.Error())
+		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	resp.StatusCode = 0
 	resp.StatusMsg = new(string)
@@ -243,51 +276,48 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 }
 
 // PublishActionRequest .
-// @router /douyin/publish/action [POST]
+// @router /douyin/publish/action/ [POST]
 func PublishActionRequest(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req core.DouyinPublishActionRequest
 	//err = c.BindAndValidate(&req)
 	form, err := c.MultipartForm()
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
-	req.Token = form.Value["token"][0]
 	req.Title = form.Value["title"][0]
 	file, err := form.File["data"][0].Open()
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	buffer := bytes.NewBuffer(nil)
 	_, err = buffer.ReadFrom(file)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	req.Data = buffer.Bytes()
 
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
-	token := req.Token
 	title := req.Title
 	data := req.Data
 	resp := new(core.DouyinPublishActionResponse)
 
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		hlog.Infof("Token parse failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
+	myId := c.GetInt64("myId")
+	if myId == 0 || data == nil || title == "" {
+		hlog.Infof("data or myId or title is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "data or myId or title is null"))
 		return
 	}
-	userId := claims.UserId
-	_, err = rpc.BasicsService.UploadVideo(ctx, &basics.UploadVideoRequest{UserId: userId, Data: data, Title: title})
+	_, err = rpc.BasicsService.UploadVideo(ctx, &basics.UploadVideoRequest{UserId: myId, Data: data, Title: title})
 	if err != nil {
 		hlog.Infof("BasicsService failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
+		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 		return
 	}
 	resp.StatusCode = 0
@@ -303,50 +333,63 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinPublishListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
-	token := req.Token
 	userId := req.UserId
-	claims, err := utils.ParseToken(token)
-	if err != nil {
-		hlog.Infof("Token parse failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
+	myId := c.GetInt64("myId")
+	resp := new(core.DouyinPublishListResponse)
+	if userId == 0 {
+		hlog.Infof("userId is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "userId is null"))
 		return
 	}
-	resp := new(core.DouyinPublishListResponse)
 	videosByUserIdResp, err := rpc.BasicsService.GetVideosByUserId(ctx, &basics.GetVideosByUserIdRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("BasicsService failed err:%v\n", err)
-		c.String(consts.StatusInternalServerError, err.Error())
+		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 		return
 	}
 	videoList := videosByUserIdResp.VideoList
 	videos := make([]*core.Video, 0, len(videoList))
 	for _, video := range videosByUserIdResp.VideoList {
+		if video.Id == 0 {
+			hlog.Infof("video.Id is null")
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "video.Id is null"))
+			return
+		}
 		videoFavoriteCountResponse, err := rpc.InteractionService.GetVideoFavoriteCount(ctx, &interaction.GetVideoFavoriteCountRequest{VideoId: video.Id})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
 		videoCommentCountResponse, err := rpc.InteractionService.GetVideoCommentCount(ctx, &interaction.GetVideoCommentCountRequest{VideoId: video.Id})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
-		isFavoriteResponse, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: claims.UserId})
+		if myId == 0 {
+			hlog.Infof("myId is null")
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "myId is null"))
+			return
+		}
+		isFavoriteResponse, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
-
-		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: claims.UserId, UserId: userId})
+		if myId == 0 || userId == 0 {
+			hlog.Infof("myId or userId is null")
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "myId or userId is null"))
+			return
+		}
+		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
-			c.String(consts.StatusInternalServerError, err.Error())
+			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
 			return
 		}
 
