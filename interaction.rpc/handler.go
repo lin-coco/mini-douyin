@@ -23,6 +23,7 @@ func (s *InteractionServiceImpl) AddVideoFavorite(ctx context.Context, req *firs
 	}
 	userId := req.UserId
 	videoId := req.VideoId
+
 	userFavourite, _ := Q.UserFavourite.Where(query.UserFavourite.UserId.Eq(uint(userId)), query.UserFavourite.VideoId.Eq(uint(videoId))).First()
 	if userFavourite == nil {
 		err = Q.UserFavourite.Create(&model.UserFavourite{UserId: uint(userId), VideoId: uint(videoId), Status: 1})

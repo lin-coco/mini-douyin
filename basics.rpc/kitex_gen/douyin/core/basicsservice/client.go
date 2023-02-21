@@ -14,6 +14,7 @@ type Client interface {
 	GetUserInfoById(ctx context.Context, Req *core.GetUserRequest, callOptions ...callopt.Option) (r *core.GetUserResponse, err error)
 	CreateUser(ctx context.Context, Req *core.CreateUserRequest, callOptions ...callopt.Option) (r *core.CreateUserResponse, err error)
 	CheckUser(ctx context.Context, Req *core.CheckUserRequest, callOptions ...callopt.Option) (r *core.CheckUserResponse, err error)
+	GetVideoInfoById(ctx context.Context, Req *core.GetVideoByIdRequest, callOptions ...callopt.Option) (r *core.GetVideoByIdResponse, err error)
 	GetVideo(ctx context.Context, Req *core.GetVideoRequest, callOptions ...callopt.Option) (r *core.GetVideoResponse, err error)
 	UploadVideo(ctx context.Context, Req *core.UploadVideoRequest, callOptions ...callopt.Option) (r *core.UploadVideoResponse, err error)
 	GetVideosByUserId(ctx context.Context, Req *core.GetVideosByUserIdRequest, callOptions ...callopt.Option) (r *core.GetVideosByUserIdResponse, err error)
@@ -63,6 +64,11 @@ func (p *kBasicsServiceClient) CreateUser(ctx context.Context, Req *core.CreateU
 func (p *kBasicsServiceClient) CheckUser(ctx context.Context, Req *core.CheckUserRequest, callOptions ...callopt.Option) (r *core.CheckUserResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.CheckUser(ctx, Req)
+}
+
+func (p *kBasicsServiceClient) GetVideoInfoById(ctx context.Context, Req *core.GetVideoByIdRequest, callOptions ...callopt.Option) (r *core.GetVideoByIdResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetVideoInfoById(ctx, Req)
 }
 
 func (p *kBasicsServiceClient) GetVideo(ctx context.Context, Req *core.GetVideoRequest, callOptions ...callopt.Option) (r *core.GetVideoResponse, err error) {

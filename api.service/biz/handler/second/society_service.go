@@ -3,22 +3,17 @@
 package second
 
 import (
+	"api.service/biz/model/api/douyin/core"
 	"api.service/biz/rpc"
 	"context"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	society "society.rpc/kitex_gen/douyin/extra/second"
+	"strings"
 
 	second "api.service/biz/model/api/douyin/extra/second"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
-
-func returnErrorResponse(code int32, msg string) second.CommonResponse {
-	return second.CommonResponse{
-		StatusCode: code,
-		StatusMsg:  msg,
-	}
-}
 
 // RelationAction .
 // @router /douyin/relation/action [POST]
@@ -45,7 +40,7 @@ func RelationAction(ctx context.Context, c *app.RequestContext) {
 		_, err := rpc.SocietyService.ConcernAction(ctx, &society.ConcernActionRequest{FromUserId: myId, ToUserId: toUserId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 	} else if actionType == 2 {
@@ -58,7 +53,7 @@ func RelationAction(ctx context.Context, c *app.RequestContext) {
 		_, err := rpc.SocietyService.CancelConcernAction(ctx, &society.CancelConcernActionRequest{FromUserId: myId, ToUserId: toUserId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 	} else {
@@ -94,7 +89,7 @@ func RelationFollowList(ctx context.Context, c *app.RequestContext) {
 	followListResponse, err := rpc.SocietyService.FollowList(ctx, &society.FollowListRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	users := followListResponse.UserList
@@ -137,7 +132,7 @@ func RelationFollowerList(ctx context.Context, c *app.RequestContext) {
 	followerListResponse, err := rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	users := followerListResponse.UserList
@@ -185,7 +180,7 @@ func RelationFriendList(ctx context.Context, c *app.RequestContext) {
 	friendListResponse, err := rpc.SocietyService.FriendList(ctx, &society.FriendListRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	users := friendListResponse.UserList
@@ -234,7 +229,7 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 	messageChatResponse, err := rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	messageList := messageChatResponse.MessageList
@@ -288,7 +283,7 @@ func MessageAction(ctx context.Context, c *app.RequestContext) {
 		_, err := rpc.SocietyService.MessageSend(ctx, &society.MessageSendRequest{MyUserId: myId, FriendUserId: toUserId, Content: content})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		resp.StatusCode = 0
@@ -300,5 +295,15 @@ func MessageAction(ctx context.Context, c *app.RequestContext) {
 		hlog.Infof("action type valid actionType:%d", actionType)
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "action type valid"))
 		return
+	}
+}
+
+func returnErrorResponse(code int32, msg string) core.CommonResponse {
+	if strings.Contains(msg, "remote or network error[remote]: biz error: ") {
+		msg = strings.Replace(msg, "remote or network error[remote]: biz error: ", "", 1)
+	}
+	return core.CommonResponse{
+		StatusCode: code,
+		StatusMsg:  msg,
 	}
 }

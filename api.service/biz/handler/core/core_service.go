@@ -15,15 +15,9 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	interaction "interaction.rpc/kitex_gen/douyin/extra/first"
 	society "society.rpc/kitex_gen/douyin/extra/second"
+	"strings"
 	"time"
 )
-
-func returnErrorResponse(code int32, msg string) core.CommonResponse {
-	return core.CommonResponse{
-		StatusCode: code,
-		StatusMsg:  msg,
-	}
-}
 
 // FeedRequest .
 // @router /douyin/feed [GET]
@@ -44,7 +38,7 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 		claims, err = utils.ParseToken(*token)
 		if err != nil {
 			hlog.Infof("Token parse failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 	}
@@ -58,7 +52,7 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		//log.Printf("BasicsService failed err:%v", err)
 		hlog.Infof("BasicsService failed err:%v\n", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 
@@ -75,7 +69,7 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 			if err != nil {
 				//log.Printf("SocietyService failed err:%v", err)
 				hlog.Infof("SocietyService failed err:%v\n", err)
-				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 				return
 			}
 		} else {
@@ -88,7 +82,7 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 			if err != nil {
 				//log.Printf("SocietyService failed err:%v", err)
 				hlog.Infof("SocietyService failed err:%v\n", err)
-				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 				return
 			}
 		}
@@ -100,13 +94,13 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 		favoriteCountResp, err := rpc.InteractionService.GetVideoFavoriteCount(ctx, &interaction.GetVideoFavoriteCountRequest{VideoId: video.Id})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		commentCountResp, err := rpc.InteractionService.GetVideoCommentCount(ctx, &interaction.GetVideoCommentCountRequest{VideoId: video.Id})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		isFavorite := false
@@ -119,7 +113,7 @@ func FeedRequest(ctx context.Context, c *app.RequestContext) {
 			isFavoriteResp, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: claims.UserId, VideoId: video.Id})
 			if err != nil {
 				hlog.Infof("InteractionService failed err:%v", err)
-				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 				return
 			}
 			isFavorite = isFavoriteResp.IsFavorite
@@ -174,15 +168,15 @@ func RegisterRequest(ctx context.Context, c *app.RequestContext) {
 		//log.Printf("register failed err:%v", err)
 		hlog.Infof("register failed err:%v", err)
 		s := err.Error()
-		resp.StatusCode = 1
-		resp.StatusMsg = &s
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, s))
+		return
 	} else {
 		resp.StatusCode = 0
 		resp.UserId = res.Id
 		token, err := utils.GenerateToken(res.Id)
 		if err != nil {
 			hlog.Infof("generate token failed err:%v\n", err.Error())
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		resp.Token = token
@@ -211,7 +205,7 @@ func LoginRequest(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		//log.Printf("BasicsService failed err:%v", err)
 		hlog.Infof("BasicsService failed err:%v", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	resp.StatusCode = 0
@@ -245,10 +239,11 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 	}
 	res, err := rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: userId})
 	if err != nil {
-		resp.StatusCode = 1
+		resp.StatusCode = 400
 		resp.StatusMsg = new(string)
 		*resp.StatusMsg = err.Error()
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
 	}
 	if userId == 0 || myId == 0 {
 		hlog.Infof("userId or myId is null")
@@ -257,10 +252,11 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 	}
 	res2, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 	if err != nil {
-		resp.StatusCode = 1
+		resp.StatusCode = 400
 		resp.StatusMsg = new(string)
 		*resp.StatusMsg = err.Error()
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
 	}
 	resp.StatusCode = 0
 	resp.StatusMsg = new(string)
@@ -287,6 +283,10 @@ func PublishActionRequest(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	req.Title = form.Value["title"][0]
+	if len(req.Title) <= 0 || len(req.Title) >= 20 {
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "validating: expr_path=Title, cause=the args too large"))
+		return
+	}
 	file, err := form.File["data"][0].Open()
 	if err != nil {
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
@@ -317,7 +317,7 @@ func PublishActionRequest(ctx context.Context, c *app.RequestContext) {
 	_, err = rpc.BasicsService.UploadVideo(ctx, &basics.UploadVideoRequest{UserId: myId, Data: data, Title: title})
 	if err != nil {
 		hlog.Infof("BasicsService failed err:%v\n", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	resp.StatusCode = 0
@@ -347,7 +347,7 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 	videosByUserIdResp, err := rpc.BasicsService.GetVideosByUserId(ctx, &basics.GetVideosByUserIdRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("BasicsService failed err:%v\n", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	videoList := videosByUserIdResp.VideoList
@@ -361,13 +361,13 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 		videoFavoriteCountResponse, err := rpc.InteractionService.GetVideoFavoriteCount(ctx, &interaction.GetVideoFavoriteCountRequest{VideoId: video.Id})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		videoCommentCountResponse, err := rpc.InteractionService.GetVideoCommentCount(ctx, &interaction.GetVideoCommentCountRequest{VideoId: video.Id})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		if myId == 0 {
@@ -378,7 +378,7 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 		isFavoriteResponse, err := rpc.InteractionService.IsFavorite(ctx, &interaction.IsFavoriteRequest{UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		if myId == 0 || userId == 0 {
@@ -389,7 +389,7 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 
@@ -415,4 +415,14 @@ func PublishListRequest(ctx context.Context, c *app.RequestContext) {
 	*resp.StatusMsg = "success"
 	resp.VideoList = videos
 	c.JSON(consts.StatusOK, resp)
+}
+
+func returnErrorResponse(code int32, msg string) core.CommonResponse {
+	if strings.Contains(msg, "remote or network error[remote]: biz error: ") {
+		msg = strings.Replace(msg, "remote or network error[remote]: biz error: ", "", 1)
+	}
+	return core.CommonResponse{
+		StatusCode: code,
+		StatusMsg:  msg,
+	}
 }
