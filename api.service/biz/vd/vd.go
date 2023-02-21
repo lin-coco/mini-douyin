@@ -43,6 +43,64 @@ func InitVD() {
 		return nil
 	})
 
+	//用户名密码标题长度不能超过20
+	binding.MustRegValidateFunc("LessTextNotNull", func(args ...interface{}) error {
+		if len(args) != 1 {
+			return fmt.Errorf("the args must be one")
+		}
+		s := args[0].(string)
+		if s == "" {
+			return fmt.Errorf("the args can not be \"\"")
+		}
+		if len(s) > 20 {
+			return fmt.Errorf("the args too large")
+		}
+		return nil
+	})
+	//评论消息长度不能超过40
+	binding.MustRegValidateFunc("LargeTextNotNull", func(args ...interface{}) error {
+		if len(args) != 1 {
+			return fmt.Errorf("the args must be one")
+		}
+		s := args[0].(string)
+		if s == "" {
+			return fmt.Errorf("the args can not be \"\"")
+		}
+		if len(s) > 40 {
+			return fmt.Errorf("the args too large")
+		}
+		return nil
+	})
+
+	//用户名密码标题长度不能超过20
+	binding.MustRegValidateFunc("LessText", func(args ...interface{}) error {
+		if len(args) != 1 {
+			return fmt.Errorf("the args must be one")
+		}
+		s := args[0].(string)
+		if s == "" {
+			return nil
+		}
+		if len(s) > 20 {
+			return fmt.Errorf("the args too large")
+		}
+		return nil
+	})
+	//评论消息长度不能超过40
+	binding.MustRegValidateFunc("LargeText", func(args ...interface{}) error {
+		if len(args) != 1 {
+			return fmt.Errorf("the args must be one")
+		}
+		s := args[0].(string)
+		if s == "" {
+			return nil
+		}
+		if len(s) > 40 {
+			return fmt.Errorf("the args too large")
+		}
+		return nil
+	})
+
 	binding.MustRegValidateFunc("NotNil", func(args ...interface{}) error {
 		if len(args) != 1 {
 			return fmt.Errorf("the args must be one")

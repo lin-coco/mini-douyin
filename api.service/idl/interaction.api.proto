@@ -53,7 +53,7 @@ message DouyinCommentActionRequest {
   string token = 1[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
   int64 video_id = 2[(api.query)="video_id",(vd)="GreaterZero($)"]; // 视频id
   int32 action_type = 3[(api.query)="action_type",(vd)="NotNegative($)"]; // 1-发布评论，2-删除评论
-  optional string comment_text = 4[(api.query)="comment_text"]; // 用户填写的评论内容，在action_type=1的时候使用
+  optional string comment_text = 4[(api.query)="comment_text",(vd)="LargeText($)"]; // 用户填写的评论内容，在action_type=1的时候使用
   optional int64 comment_id = 5[(api.query)="comment_id"]; // 要删除的评论id，在action_type=2的时候使用
 }
 message DouyinCommentActionResponse {

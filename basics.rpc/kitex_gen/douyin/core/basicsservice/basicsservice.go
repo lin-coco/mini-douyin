@@ -25,6 +25,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"GetUserInfoById":   kitex.NewMethodInfo(getUserInfoByIdHandler, newGetUserInfoByIdArgs, newGetUserInfoByIdResult, false),
 		"CreateUser":        kitex.NewMethodInfo(createUserHandler, newCreateUserArgs, newCreateUserResult, false),
 		"CheckUser":         kitex.NewMethodInfo(checkUserHandler, newCheckUserArgs, newCheckUserResult, false),
+		"GetVideoInfoById":  kitex.NewMethodInfo(getVideoInfoByIdHandler, newGetVideoInfoByIdArgs, newGetVideoInfoByIdResult, false),
 		"GetVideo":          kitex.NewMethodInfo(getVideoHandler, newGetVideoArgs, newGetVideoResult, false),
 		"UploadVideo":       kitex.NewMethodInfo(uploadVideoHandler, newUploadVideoArgs, newUploadVideoResult, false),
 		"GetVideosByUserId": kitex.NewMethodInfo(getVideosByUserIdHandler, newGetVideosByUserIdArgs, newGetVideosByUserIdResult, false),
@@ -477,6 +478,151 @@ func (p *CheckUserResult) SetSuccess(x interface{}) {
 }
 
 func (p *CheckUserResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func getVideoInfoByIdHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(core.GetVideoByIdRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(core.BasicsService).GetVideoInfoById(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *GetVideoInfoByIdArgs:
+		success, err := handler.(core.BasicsService).GetVideoInfoById(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetVideoInfoByIdResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newGetVideoInfoByIdArgs() interface{} {
+	return &GetVideoInfoByIdArgs{}
+}
+
+func newGetVideoInfoByIdResult() interface{} {
+	return &GetVideoInfoByIdResult{}
+}
+
+type GetVideoInfoByIdArgs struct {
+	Req *core.GetVideoByIdRequest
+}
+
+func (p *GetVideoInfoByIdArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(core.GetVideoByIdRequest)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *GetVideoInfoByIdArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *GetVideoInfoByIdArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *GetVideoInfoByIdArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in GetVideoInfoByIdArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetVideoInfoByIdArgs) Unmarshal(in []byte) error {
+	msg := new(core.GetVideoByIdRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetVideoInfoByIdArgs_Req_DEFAULT *core.GetVideoByIdRequest
+
+func (p *GetVideoInfoByIdArgs) GetReq() *core.GetVideoByIdRequest {
+	if !p.IsSetReq() {
+		return GetVideoInfoByIdArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetVideoInfoByIdArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type GetVideoInfoByIdResult struct {
+	Success *core.GetVideoByIdResponse
+}
+
+var GetVideoInfoByIdResult_Success_DEFAULT *core.GetVideoByIdResponse
+
+func (p *GetVideoInfoByIdResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(core.GetVideoByIdResponse)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *GetVideoInfoByIdResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *GetVideoInfoByIdResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *GetVideoInfoByIdResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in GetVideoInfoByIdResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetVideoInfoByIdResult) Unmarshal(in []byte) error {
+	msg := new(core.GetVideoByIdResponse)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetVideoInfoByIdResult) GetSuccess() *core.GetVideoByIdResponse {
+	if !p.IsSetSuccess() {
+		return GetVideoInfoByIdResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetVideoInfoByIdResult) SetSuccess(x interface{}) {
+	p.Success = x.(*core.GetVideoByIdResponse)
+}
+
+func (p *GetVideoInfoByIdResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
@@ -1240,6 +1386,16 @@ func (p *kClient) CheckUser(ctx context.Context, Req *core.CheckUserRequest) (r 
 	_args.Req = Req
 	var _result CheckUserResult
 	if err = p.c.Call(ctx, "CheckUser", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetVideoInfoById(ctx context.Context, Req *core.GetVideoByIdRequest) (r *core.GetVideoByIdResponse, err error) {
+	var _args GetVideoInfoByIdArgs
+	_args.Req = Req
+	var _result GetVideoInfoByIdResult
+	if err = p.c.Call(ctx, "GetVideoInfoById", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

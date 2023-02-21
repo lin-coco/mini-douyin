@@ -158,7 +158,7 @@ func (s *BasicsServiceImpl) UploadVideo(ctx context.Context, req *core.UploadVid
 		return nil, err
 	}
 	//上传封面
-	cmd := exec.Command("ffmpeg", "-i", "/Users/xueyeshang/Desktop/第五届字节跳动青训营/极简抖音/测试数据/v0d00fg10000cfd3bdbc77uaaea7kuv0.MP4", "-vframes", "1", "-q:v", "2", "-f", "image2", "pipe:1")
+	cmd := exec.Command("ffmpeg", "-i", OSSBaseUrl+fileName, "-vframes", "1", "-q:v", "2", "-f", "image2", "pipe:1")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err = cmd.Run()
@@ -201,6 +201,13 @@ func (s *BasicsServiceImpl) GetVideosByUserId(ctx context.Context, req *core.Get
 		return nil, err
 	}
 	userId := req.UserId
+	count, err := query.Q.User.Where(query.User.ID.Eq(uint(userId))).Count()
+	if err != nil {
+		return nil, err
+	}
+	if count <= 0 {
+		return nil, errors.New("userInfo is not found")
+	}
 	videos, err := query.Q.Video.Where(query.Video.UserId.Eq(uint(userId))).Find()
 	if err != nil {
 		log.Printf("query failed err:%v", err)
@@ -356,4 +363,22 @@ func checkReq(req interface{}) error {
 		return errors.New("req is nil please check other service")
 	}
 	return nil
+}
+
+// GetVideoInfoById implements the BasicsServiceImpl interface.
+func (s *BasicsServiceImpl) GetVideoInfoById(ctx context.Context, req *core.GetVideoByIdRequest) (resp *core.GetVideoByIdResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
+	videoId := req.VideoId
+	video, err := query.Q.Video.Where(query.Video.ID.Eq(uint(videoId))).First()
+	if err != nil {
+		log.Printf("query failed videoId:%d, err:%v", videoId, err)
+		return nil, err
+	}
+	return &core.GetVideoByIdResponse{
+		Id:    int64(video.ID),
+		Title: video.Title,
+	}, nil
 }

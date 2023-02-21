@@ -91,7 +91,7 @@ func DBInit() {
 }
 
 func BasicsRPCInit() {
-	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
+	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
 	if err != nil {
 		panic(err)
 	}

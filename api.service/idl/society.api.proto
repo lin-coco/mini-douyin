@@ -80,7 +80,7 @@ message DouyinMessageActionRequest {
   string token = 1[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
   int64 to_user_id = 2[(api.query)="to_user_id",(vd)="GreaterZero($)"]; // 对方用户id
   int32 action_type = 3[(api.query)="action_type",(vd)="NotNegative($)"]; // 1-发送消息
-  string content = 4[(api.query)="content",(vd)="NotStringDefault($)"]; // 消息内容
+  string content = 4[(api.query)="content",(vd)="LargeTextNotNull($)"]; // 消息内容
 }
 
 message DouyinMessageActionResponse {

@@ -90,11 +90,20 @@ message GetUserListByIdsResponse {
   repeated User user_list = 3;
 }
 
+message GetVideoByIdRequest {
+  int64 video_id = 1;
+}
+message GetVideoByIdResponse {
+  int64 id = 1;
+  string title = 2;
+}
+
 service BasicsService {
   //api.service needed
   rpc GetUserInfoById(GetUserRequest) returns(GetUserResponse);
   rpc CreateUser(CreateUserRequest) returns(CreateUserResponse);
   rpc CheckUser(CheckUserRequest) returns(CheckUserResponse);
+  rpc GetVideoInfoById(GetVideoByIdRequest) returns(GetVideoByIdResponse);
 
   rpc GetVideo(GetVideoRequest) returns(GetVideoResponse);
   rpc UploadVideo(UploadVideoRequest) returns(UploadVideoResponse);

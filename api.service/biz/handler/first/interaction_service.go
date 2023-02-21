@@ -3,22 +3,18 @@
 package first
 
 import (
+	"api.service/biz/model/api/douyin/core"
 	first "api.service/biz/model/api/douyin/extra/first"
 	"api.service/biz/rpc"
+	basics "basics.rpc/kitex_gen/douyin/core"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	interaction "interaction.rpc/kitex_gen/douyin/extra/first"
 	society "society.rpc/kitex_gen/douyin/extra/second"
+	"strings"
 )
-
-func returnErrorResponse(code int32, msg string) first.CommonResponse {
-	return first.CommonResponse{
-		StatusCode: code,
-		StatusMsg:  msg,
-	}
-}
 
 // FavoriteAction .
 // @router /douyin/favorite/action [POST]
@@ -35,28 +31,36 @@ func FavoriteAction(ctx context.Context, c *app.RequestContext) {
 	videoId := req.VideoId
 	actionType := req.ActionType
 	myId := c.GetInt64("myId")
+	if videoId == 0 || myId == 0 {
+		hlog.Infof("videoId or myId is null")
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "videoId or myId is null"))
+		return
+	}
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: myId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	_, err = rpc.BasicsService.GetVideoInfoById(ctx, &basics.GetVideoByIdRequest{VideoId: videoId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	if actionType == 1 {
-		if videoId == 0 || myId == 0 {
-			hlog.Infof("videoId or myId is null")
-			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "videoId or myId is null"))
-			return
-		}
 		_, err := rpc.InteractionService.AddVideoFavorite(ctx, &interaction.AddVideoFavoriteRequest{VideoId: videoId, UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 	} else if actionType == 2 {
-		if videoId == 0 || myId == 0 {
-			hlog.Infof("videoId or myId is null")
-			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "videoId or myId is null"))
-			return
-		}
+
 		_, err := rpc.InteractionService.CancelVideoFavorite(ctx, &interaction.CancelVideoFavoriteRequest{VideoId: videoId, UserId: myId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 	} else {
@@ -84,7 +88,7 @@ func FavoriteList(ctx context.Context, c *app.RequestContext) {
 	userId := req.UserId
 	myId := c.GetInt64("myId")
 	if userId != myId {
-		resp.StatusCode = 1
+		resp.StatusCode = 400
 		resp.StatusMsg = new(string)
 		*resp.StatusMsg = "No permissions"
 		resp.VideoList = make([]*first.Video, 0, 0)
@@ -99,21 +103,21 @@ func FavoriteList(ctx context.Context, c *app.RequestContext) {
 	favoriteListResponse, err := rpc.InteractionService.GetFavoriteList(ctx, &interaction.GetFavoriteListRequest{UserId: userId})
 	if err != nil {
 		hlog.Infof("InteractionService failed err:%v\n", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	videoList := favoriteListResponse.VideoList
 	videos := make([]*first.Video, 0, len(videoList))
 	for _, video := range videoList {
-		if myId == 0 || userId == 0 {
+		if myId == 0 || video.Author.Id == 0 {
 			hlog.Infof("myId or userId is null")
 			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "myId or userId is null"))
 			return
 		}
-		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: userId})
+		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: video.Author.Id})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		videos = append(videos, &first.Video{
@@ -156,7 +160,18 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 	commentText := req.CommentText
 	commentId := req.CommentId
 	resp := new(first.DouyinCommentActionResponse)
-
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: myId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	_, err = rpc.BasicsService.GetVideoInfoById(ctx, &basics.GetVideoByIdRequest{VideoId: videoId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	if actionType == 1 {
 		if myId == 0 || videoId == 0 || *commentText == "" {
 			hlog.Infof("myId or videoId or commentText is null")
@@ -167,7 +182,7 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		addCommentResponse, err := rpc.InteractionService.AddComment(ctx, &interaction.AddCommentRequest{UserId: myId, VideoId: videoId, CommentText: *commentText})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		comment := addCommentResponse.Comment
@@ -179,7 +194,7 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		societyInfoResponse, err := rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: comment.User.Id})
 		if err != nil {
 			hlog.Infof("SocietyService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		resp.StatusCode = 0
@@ -208,7 +223,7 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		commentByIdResponse, err := rpc.InteractionService.GetCommentById(ctx, &interaction.GetCommentByIdRequest{CommentId: *commentId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		if commentByIdResponse.UserId != myId {
@@ -224,7 +239,7 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		_, err = rpc.InteractionService.DeleteComment(ctx, &interaction.DeleteCommentRequest{CommentId: *commentId})
 		if err != nil {
 			hlog.Infof("InteractionService failed err:%v\n", err)
-			c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 			return
 		}
 		resp.StatusCode = 0
@@ -250,6 +265,19 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 	//所有用户可查看
 	videoId := req.VideoId
 	myId := c.GetInt64("myId")
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: myId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	_, err = rpc.BasicsService.GetVideoInfoById(ctx, &basics.GetVideoByIdRequest{VideoId: videoId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+
 	isLogin := false
 	if err != nil {
 		hlog.Infof("token parse failed。not logined")
@@ -267,7 +295,7 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 	commentListResponse, err := rpc.InteractionService.CommentList(ctx, &interaction.CommentListRequest{VideoId: videoId})
 	if err != nil {
 		hlog.Infof("InteractionService failed err:%v", err)
-		c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
 	comments := commentListResponse.CommentList
@@ -284,7 +312,7 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 			societyInfoResponse, err = rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: myId, UserId: comment.User.Id})
 			if err != nil {
 				hlog.Infof("InteractionService failed err:%v", err)
-				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 				return
 			}
 		} else {
@@ -296,7 +324,7 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 			societyInfoResponse, err = rpc.SocietyService.SocietyInfo(ctx, &society.SocietyInfoRequest{MyId: comment.User.Id, UserId: comment.User.Id})
 			if err != nil {
 				hlog.Infof("InteractionService failed err:%v", err)
-				c.JSON(consts.StatusInternalServerError, returnErrorResponse(consts.StatusInternalServerError, err.Error()))
+				c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 				return
 			}
 		}
@@ -318,4 +346,14 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 	*resp.StatusMsg = "success"
 	resp.CommentList = commentList
 	c.JSON(consts.StatusOK, resp)
+}
+
+func returnErrorResponse(code int32, msg string) core.CommonResponse {
+	if strings.Contains(msg, "remote or network error[remote]: biz error: ") {
+		msg = strings.Replace(msg, "remote or network error[remote]: biz error: ", "", 1)
+	}
+	return core.CommonResponse{
+		StatusCode: code,
+		StatusMsg:  msg,
+	}
 }

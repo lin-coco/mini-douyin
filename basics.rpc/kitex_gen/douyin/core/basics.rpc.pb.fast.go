@@ -745,6 +745,66 @@ func (x *GetUserListByIdsResponse) fastReadField3(buf []byte, _type int8) (offse
 	return offset, nil
 }
 
+func (x *GetVideoByIdRequest) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_GetVideoByIdRequest[number], err)
+}
+
+func (x *GetVideoByIdRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.VideoId, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GetVideoByIdResponse) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_GetVideoByIdResponse[number], err)
+}
+
+func (x *GetVideoByIdResponse) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.Id, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GetVideoByIdResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.Title, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
 func (x *GetUserRequest) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -1264,6 +1324,47 @@ func (x *GetUserListByIdsResponse) fastWriteField3(buf []byte) (offset int) {
 	for i := range x.UserList {
 		offset += fastpb.WriteMessage(buf[offset:], 3, x.UserList[i])
 	}
+	return offset
+}
+
+func (x *GetVideoByIdRequest) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	return offset
+}
+
+func (x *GetVideoByIdRequest) fastWriteField1(buf []byte) (offset int) {
+	if x.VideoId == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.VideoId)
+	return offset
+}
+
+func (x *GetVideoByIdResponse) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	return offset
+}
+
+func (x *GetVideoByIdResponse) fastWriteField1(buf []byte) (offset int) {
+	if x.Id == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.Id)
+	return offset
+}
+
+func (x *GetVideoByIdResponse) fastWriteField2(buf []byte) (offset int) {
+	if x.Title == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.Title)
 	return offset
 }
 
@@ -1789,6 +1890,47 @@ func (x *GetUserListByIdsResponse) sizeField3() (n int) {
 	return n
 }
 
+func (x *GetVideoByIdRequest) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	return n
+}
+
+func (x *GetVideoByIdRequest) sizeField1() (n int) {
+	if x.VideoId == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.VideoId)
+	return n
+}
+
+func (x *GetVideoByIdResponse) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	return n
+}
+
+func (x *GetVideoByIdResponse) sizeField1() (n int) {
+	if x.Id == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.Id)
+	return n
+}
+
+func (x *GetVideoByIdResponse) sizeField2() (n int) {
+	if x.Title == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.Title)
+	return n
+}
+
 var fieldIDToName_GetUserRequest = map[int32]string{
 	1: "UserId",
 }
@@ -1883,4 +2025,13 @@ var fieldIDToName_GetUserListByIdsResponse = map[int32]string{
 	1: "StatusCode",
 	2: "StatusMsg",
 	3: "UserList",
+}
+
+var fieldIDToName_GetVideoByIdRequest = map[int32]string{
+	1: "VideoId",
+}
+
+var fieldIDToName_GetVideoByIdResponse = map[int32]string{
+	1: "Id",
+	2: "Title",
 }
