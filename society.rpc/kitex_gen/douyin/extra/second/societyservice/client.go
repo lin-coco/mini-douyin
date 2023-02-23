@@ -19,6 +19,7 @@ type Client interface {
 	MessageChat(ctx context.Context, Req *second.MessageChatRequest, callOptions ...callopt.Option) (r *second.MessageChatResponse, err error)
 	MessageSend(ctx context.Context, Req *second.MessageSendRequest, callOptions ...callopt.Option) (r *second.MessageSendResponse, err error)
 	SocietyInfo(ctx context.Context, Req *second.SocietyInfoRequest, callOptions ...callopt.Option) (r *second.SocietyInfoResponse, err error)
+	IsFriend(ctx context.Context, Req *second.IsFriendRequest, callOptions ...callopt.Option) (r *second.IsFriendResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -88,4 +89,9 @@ func (p *kSocietyServiceClient) MessageSend(ctx context.Context, Req *second.Mes
 func (p *kSocietyServiceClient) SocietyInfo(ctx context.Context, Req *second.SocietyInfoRequest, callOptions ...callopt.Option) (r *second.SocietyInfoResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.SocietyInfo(ctx, Req)
+}
+
+func (p *kSocietyServiceClient) IsFriend(ctx context.Context, Req *second.IsFriendRequest, callOptions ...callopt.Option) (r *second.IsFriendResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.IsFriend(ctx, Req)
 }

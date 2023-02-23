@@ -16,23 +16,23 @@ func InitSentinel() {
 	_, err = flow.LoadRules([]*flow.Rule{
 		{
 			Resource:               "api_service",
-			Threshold:              50,
+			Threshold:              100,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		},
 		{
 			Resource:               "core_service",
-			Threshold:              50,
+			Threshold:              100,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		}, {
 			Resource:               "interaction_service",
-			Threshold:              50,
+			Threshold:              100,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		}, {
 			Resource:               "society_service",
-			Threshold:              50,
+			Threshold:              100,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		},

@@ -5,6 +5,7 @@ package second
 import (
 	"api.service/biz/model/api/douyin/core"
 	"api.service/biz/rpc"
+	basics "basics.rpc/kitex_gen/douyin/core"
 	"context"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	society "society.rpc/kitex_gen/douyin/extra/second"
@@ -30,6 +31,19 @@ func RelationAction(ctx context.Context, c *app.RequestContext) {
 	resp := new(second.DouyinRelationActionResponse)
 
 	myId := c.GetInt64("myId")
+
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: myId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: toUserId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	if actionType == 1 {
 		if toUserId == 0 || myId == 0 {
 			hlog.Infof("toUserId or myId is null")
@@ -80,6 +94,12 @@ func RelationFollowList(ctx context.Context, c *app.RequestContext) {
 	}
 	//myId := c.GetInt64("myId")
 	userId := req.UserId
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: userId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	resp := new(second.DouyinRelationFollowListResponse)
 	if userId == 0 {
 		hlog.Infof("userId is null")
@@ -124,12 +144,18 @@ func RelationFollowerList(ctx context.Context, c *app.RequestContext) {
 	resp := new(second.DouyinRelationFollowerListResponse)
 
 	userId := req.UserId
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: userId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	if userId == 0 {
 		hlog.Infof("userId is null")
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "userId is null"))
 		return
 	}
-	followerListResponse, err := rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId})
+	followerListResponse, err := rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId, PageNo: *req.PageNo, PageSize: *req.PageSize})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
@@ -216,6 +242,18 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 
 	toUserId := req.ToUserId
 	myId := c.GetInt64("myId")
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: myId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: toUserId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	if myId == toUserId {
 		hlog.Infof("fromUserId = toUserId error")
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "fromUserId = toUserId error"))
@@ -226,7 +264,13 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "myId or toUserId is null"))
 		return
 	}
-	messageChatResponse, err := rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId})
+	_, err = rpc.SocietyService.IsFriend(ctx, &society.IsFriendRequest{MyUserId: myId, FriendUserId: toUserId})
+	if err != nil {
+		hlog.Infof("SocietyService failed err:%v", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	messageChatResponse, err := rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId, StartTime: *req.StartTime, EndTime: *req.EndTime})
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
@@ -267,6 +311,18 @@ func MessageAction(ctx context.Context, c *app.RequestContext) {
 	actionType := req.ActionType
 	content := req.Content
 	myId := c.GetInt64("myId")
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: toUserId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	_, err = rpc.BasicsService.GetUserInfoById(ctx, &basics.GetUserRequest{UserId: myId})
+	if err != nil {
+		hlog.Infof("BasicsService failed err:%v\n", err)
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
 	if myId == toUserId {
 		hlog.Infof("fromUserId = toUserId error")
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "fromUserId = toUserId error"))

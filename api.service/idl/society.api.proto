@@ -40,6 +40,8 @@ message User {
 message DouyinRelationFollowerListRequest {
   int64 user_id = 1[(api.query)="user_id",(vd)="GreaterZero($)"]; // 用户id
   string token = 2[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
+  optional int64 page_no = 3[(api.query)="page_no"];//第几页
+  optional int64 page_size = 4[(api.query)="page_size"];//页的大小
 }
 message DouyinRelationFollowerListResponse {
   int32 status_code = 1; // 状态码，0-成功，其他值-失败
@@ -60,6 +62,8 @@ message DouyinRelationFriendListResponse {
 message DouyinMessageChatRequest {
   string token = 1[(api.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
   int64 to_user_id = 2[(api.query)="to_user_id",(vd)="GreaterZero($)"]; // 对方用户id
+  optional int64 start_time = 5[(api.query)="start_time"];
+  optional int64 end_time = 6[(api.query)="end_time"];
 }
 
 message DouyinMessageChatResponse {
