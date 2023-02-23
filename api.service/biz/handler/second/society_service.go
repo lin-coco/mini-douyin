@@ -295,11 +295,12 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 	messages := make([]*second.Message, 0, len(messageList))
 	for _, message := range messageList {
 		messages = append(messages, &second.Message{
-			Id:         message.Id,
-			FromUserId: message.FromUserId,
-			ToUserId:   message.ToUserId,
-			Content:    message.Content,
-			CreateTime: message.CreateTime,
+			Id:               message.Id,
+			FromUserId:       message.FromUserId,
+			ToUserId:         message.ToUserId,
+			Content:          message.Content,
+			CreateTime:       message.CreateTime,
+			CreateTimeFormat: message.CreateTimeFormat,
 		})
 	}
 	resp.StatusCode = 0

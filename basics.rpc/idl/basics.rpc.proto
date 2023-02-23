@@ -98,6 +98,20 @@ message GetVideoByIdResponse {
   string title = 2;
 }
 
+message VideoCountRequest {
+  int64 user_id = 1;
+}
+message VideoCountResponse {
+  int64 work_count = 1;
+}
+
+message UserVideoIdsRequest {
+  int64 user_id = 1;
+}
+message UserVideoIdsResponse {
+  repeated int64 video_id_list = 1;
+}
+
 service BasicsService {
   //api.service needed
   rpc GetUserInfoById(GetUserRequest) returns(GetUserResponse);
@@ -113,4 +127,7 @@ service BasicsService {
   rpc GetVideoListByIds(GetVideoListByIdsRequest) returns(GetVideoListByIdsResponse);
   //society.rpc needed
   rpc GetUserListByIds(GetUserListByIdsRequest) returns(GetUserListByIdsResponse);
+  //作品数
+  rpc GetVideoCount(VideoCountRequest) returns(VideoCountResponse);
+  rpc GetUserVideoIds(UserVideoIdsRequest) returns(UserVideoIdsResponse);
 }

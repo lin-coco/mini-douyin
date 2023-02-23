@@ -31,6 +31,8 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"GetVideosByUserId": kitex.NewMethodInfo(getVideosByUserIdHandler, newGetVideosByUserIdArgs, newGetVideosByUserIdResult, false),
 		"GetVideoListByIds": kitex.NewMethodInfo(getVideoListByIdsHandler, newGetVideoListByIdsArgs, newGetVideoListByIdsResult, false),
 		"GetUserListByIds":  kitex.NewMethodInfo(getUserListByIdsHandler, newGetUserListByIdsArgs, newGetUserListByIdsResult, false),
+		"GetVideoCount":     kitex.NewMethodInfo(getVideoCountHandler, newGetVideoCountArgs, newGetVideoCountResult, false),
+		"GetUserVideoIds":   kitex.NewMethodInfo(getUserVideoIdsHandler, newGetUserVideoIdsArgs, newGetUserVideoIdsResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "douyin.core",
@@ -1351,6 +1353,296 @@ func (p *GetUserListByIdsResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func getVideoCountHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(core.VideoCountRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(core.BasicsService).GetVideoCount(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *GetVideoCountArgs:
+		success, err := handler.(core.BasicsService).GetVideoCount(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetVideoCountResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newGetVideoCountArgs() interface{} {
+	return &GetVideoCountArgs{}
+}
+
+func newGetVideoCountResult() interface{} {
+	return &GetVideoCountResult{}
+}
+
+type GetVideoCountArgs struct {
+	Req *core.VideoCountRequest
+}
+
+func (p *GetVideoCountArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(core.VideoCountRequest)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *GetVideoCountArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *GetVideoCountArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *GetVideoCountArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in GetVideoCountArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetVideoCountArgs) Unmarshal(in []byte) error {
+	msg := new(core.VideoCountRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetVideoCountArgs_Req_DEFAULT *core.VideoCountRequest
+
+func (p *GetVideoCountArgs) GetReq() *core.VideoCountRequest {
+	if !p.IsSetReq() {
+		return GetVideoCountArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetVideoCountArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type GetVideoCountResult struct {
+	Success *core.VideoCountResponse
+}
+
+var GetVideoCountResult_Success_DEFAULT *core.VideoCountResponse
+
+func (p *GetVideoCountResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(core.VideoCountResponse)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *GetVideoCountResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *GetVideoCountResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *GetVideoCountResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in GetVideoCountResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetVideoCountResult) Unmarshal(in []byte) error {
+	msg := new(core.VideoCountResponse)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetVideoCountResult) GetSuccess() *core.VideoCountResponse {
+	if !p.IsSetSuccess() {
+		return GetVideoCountResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetVideoCountResult) SetSuccess(x interface{}) {
+	p.Success = x.(*core.VideoCountResponse)
+}
+
+func (p *GetVideoCountResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func getUserVideoIdsHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(core.UserVideoIdsRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(core.BasicsService).GetUserVideoIds(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *GetUserVideoIdsArgs:
+		success, err := handler.(core.BasicsService).GetUserVideoIds(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetUserVideoIdsResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newGetUserVideoIdsArgs() interface{} {
+	return &GetUserVideoIdsArgs{}
+}
+
+func newGetUserVideoIdsResult() interface{} {
+	return &GetUserVideoIdsResult{}
+}
+
+type GetUserVideoIdsArgs struct {
+	Req *core.UserVideoIdsRequest
+}
+
+func (p *GetUserVideoIdsArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(core.UserVideoIdsRequest)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *GetUserVideoIdsArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *GetUserVideoIdsArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *GetUserVideoIdsArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in GetUserVideoIdsArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetUserVideoIdsArgs) Unmarshal(in []byte) error {
+	msg := new(core.UserVideoIdsRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetUserVideoIdsArgs_Req_DEFAULT *core.UserVideoIdsRequest
+
+func (p *GetUserVideoIdsArgs) GetReq() *core.UserVideoIdsRequest {
+	if !p.IsSetReq() {
+		return GetUserVideoIdsArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetUserVideoIdsArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type GetUserVideoIdsResult struct {
+	Success *core.UserVideoIdsResponse
+}
+
+var GetUserVideoIdsResult_Success_DEFAULT *core.UserVideoIdsResponse
+
+func (p *GetUserVideoIdsResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(core.UserVideoIdsResponse)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *GetUserVideoIdsResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *GetUserVideoIdsResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *GetUserVideoIdsResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in GetUserVideoIdsResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetUserVideoIdsResult) Unmarshal(in []byte) error {
+	msg := new(core.UserVideoIdsResponse)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetUserVideoIdsResult) GetSuccess() *core.UserVideoIdsResponse {
+	if !p.IsSetSuccess() {
+		return GetUserVideoIdsResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetUserVideoIdsResult) SetSuccess(x interface{}) {
+	p.Success = x.(*core.UserVideoIdsResponse)
+}
+
+func (p *GetUserVideoIdsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -1446,6 +1738,26 @@ func (p *kClient) GetUserListByIds(ctx context.Context, Req *core.GetUserListByI
 	_args.Req = Req
 	var _result GetUserListByIdsResult
 	if err = p.c.Call(ctx, "GetUserListByIds", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetVideoCount(ctx context.Context, Req *core.VideoCountRequest) (r *core.VideoCountResponse, err error) {
+	var _args GetVideoCountArgs
+	_args.Req = Req
+	var _result GetVideoCountResult
+	if err = p.c.Call(ctx, "GetVideoCount", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetUserVideoIds(ctx context.Context, Req *core.UserVideoIdsRequest) (r *core.UserVideoIdsResponse, err error) {
+	var _args GetUserVideoIdsArgs
+	_args.Req = Req
+	var _result GetUserVideoIdsResult
+	if err = p.c.Call(ctx, "GetUserVideoIds", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

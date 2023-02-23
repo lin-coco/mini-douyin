@@ -972,6 +972,76 @@ func (x *GetCommentByIdResponse) fastReadField6(buf []byte, _type int8) (offset 
 	return offset, err
 }
 
+func (x *GetInteractionInfoRequest) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_GetInteractionInfoRequest[number], err)
+}
+
+func (x *GetInteractionInfoRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.UserId, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GetInteractionInfoResponse) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_GetInteractionInfoResponse[number], err)
+}
+
+func (x *GetInteractionInfoResponse) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.TotalFavorited, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GetInteractionInfoResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.WorkCount, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GetInteractionInfoResponse) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.FavoriteCount, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
 func (x *AddVideoFavoriteRequest) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -1665,6 +1735,56 @@ func (x *GetCommentByIdResponse) fastWriteField6(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteInt64(buf[offset:], 6, x.VideoId)
+	return offset
+}
+
+func (x *GetInteractionInfoRequest) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	return offset
+}
+
+func (x *GetInteractionInfoRequest) fastWriteField1(buf []byte) (offset int) {
+	if x.UserId == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.UserId)
+	return offset
+}
+
+func (x *GetInteractionInfoResponse) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	return offset
+}
+
+func (x *GetInteractionInfoResponse) fastWriteField1(buf []byte) (offset int) {
+	if x.TotalFavorited == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.TotalFavorited)
+	return offset
+}
+
+func (x *GetInteractionInfoResponse) fastWriteField2(buf []byte) (offset int) {
+	if x.WorkCount == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.WorkCount)
+	return offset
+}
+
+func (x *GetInteractionInfoResponse) fastWriteField3(buf []byte) (offset int) {
+	if x.FavoriteCount == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.FavoriteCount)
 	return offset
 }
 
@@ -2364,6 +2484,56 @@ func (x *GetCommentByIdResponse) sizeField6() (n int) {
 	return n
 }
 
+func (x *GetInteractionInfoRequest) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	return n
+}
+
+func (x *GetInteractionInfoRequest) sizeField1() (n int) {
+	if x.UserId == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.UserId)
+	return n
+}
+
+func (x *GetInteractionInfoResponse) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	return n
+}
+
+func (x *GetInteractionInfoResponse) sizeField1() (n int) {
+	if x.TotalFavorited == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.TotalFavorited)
+	return n
+}
+
+func (x *GetInteractionInfoResponse) sizeField2() (n int) {
+	if x.WorkCount == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(2, x.WorkCount)
+	return n
+}
+
+func (x *GetInteractionInfoResponse) sizeField3() (n int) {
+	if x.FavoriteCount == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(3, x.FavoriteCount)
+	return n
+}
+
 var fieldIDToName_AddVideoFavoriteRequest = map[int32]string{
 	1: "VideoId",
 	2: "UserId",
@@ -2490,4 +2660,14 @@ var fieldIDToName_GetCommentByIdResponse = map[int32]string{
 	4: "UserId",
 	5: "Content",
 	6: "VideoId",
+}
+
+var fieldIDToName_GetInteractionInfoRequest = map[int32]string{
+	1: "UserId",
+}
+
+var fieldIDToName_GetInteractionInfoResponse = map[int32]string{
+	1: "TotalFavorited",
+	2: "WorkCount",
+	3: "FavoriteCount",
 }

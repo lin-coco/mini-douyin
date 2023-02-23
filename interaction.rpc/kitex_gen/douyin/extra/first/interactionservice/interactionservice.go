@@ -32,6 +32,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"GetVideoCommentCount":  kitex.NewMethodInfo(getVideoCommentCountHandler, newGetVideoCommentCountArgs, newGetVideoCommentCountResult, false),
 		"IsFavorite":            kitex.NewMethodInfo(isFavoriteHandler, newIsFavoriteArgs, newIsFavoriteResult, false),
 		"GetCommentById":        kitex.NewMethodInfo(getCommentByIdHandler, newGetCommentByIdArgs, newGetCommentByIdResult, false),
+		"GetInteractionInfo":    kitex.NewMethodInfo(getInteractionInfoHandler, newGetInteractionInfoArgs, newGetInteractionInfoResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "douyin.extra.first",
@@ -1497,6 +1498,151 @@ func (p *GetCommentByIdResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func getInteractionInfoHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(first.GetInteractionInfoRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(first.InteractionService).GetInteractionInfo(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *GetInteractionInfoArgs:
+		success, err := handler.(first.InteractionService).GetInteractionInfo(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetInteractionInfoResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newGetInteractionInfoArgs() interface{} {
+	return &GetInteractionInfoArgs{}
+}
+
+func newGetInteractionInfoResult() interface{} {
+	return &GetInteractionInfoResult{}
+}
+
+type GetInteractionInfoArgs struct {
+	Req *first.GetInteractionInfoRequest
+}
+
+func (p *GetInteractionInfoArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(first.GetInteractionInfoRequest)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *GetInteractionInfoArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *GetInteractionInfoArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *GetInteractionInfoArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in GetInteractionInfoArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetInteractionInfoArgs) Unmarshal(in []byte) error {
+	msg := new(first.GetInteractionInfoRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetInteractionInfoArgs_Req_DEFAULT *first.GetInteractionInfoRequest
+
+func (p *GetInteractionInfoArgs) GetReq() *first.GetInteractionInfoRequest {
+	if !p.IsSetReq() {
+		return GetInteractionInfoArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetInteractionInfoArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type GetInteractionInfoResult struct {
+	Success *first.GetInteractionInfoResponse
+}
+
+var GetInteractionInfoResult_Success_DEFAULT *first.GetInteractionInfoResponse
+
+func (p *GetInteractionInfoResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(first.GetInteractionInfoResponse)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *GetInteractionInfoResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *GetInteractionInfoResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *GetInteractionInfoResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in GetInteractionInfoResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetInteractionInfoResult) Unmarshal(in []byte) error {
+	msg := new(first.GetInteractionInfoResponse)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetInteractionInfoResult) GetSuccess() *first.GetInteractionInfoResponse {
+	if !p.IsSetSuccess() {
+		return GetInteractionInfoResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetInteractionInfoResult) SetSuccess(x interface{}) {
+	p.Success = x.(*first.GetInteractionInfoResponse)
+}
+
+func (p *GetInteractionInfoResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -1602,6 +1748,16 @@ func (p *kClient) GetCommentById(ctx context.Context, Req *first.GetCommentByIdR
 	_args.Req = Req
 	var _result GetCommentByIdResult
 	if err = p.c.Call(ctx, "GetCommentById", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetInteractionInfo(ctx context.Context, Req *first.GetInteractionInfoRequest) (r *first.GetInteractionInfoResponse, err error) {
+	var _args GetInteractionInfoArgs
+	_args.Req = Req
+	var _result GetInteractionInfoResult
+	if err = p.c.Call(ctx, "GetInteractionInfo", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

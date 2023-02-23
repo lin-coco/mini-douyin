@@ -258,15 +258,32 @@ func UserRequest(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
+	GetInteractionInfoResponse, err := rpc.InteractionService.GetInteractionInfo(ctx, &interaction.GetInteractionInfoRequest{UserId: userId})
+	if err != nil {
+		resp.StatusCode = 400
+		resp.StatusMsg = new(string)
+		*resp.StatusMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+		return
+	}
+	if GetInteractionInfoResponse == nil {
+		GetInteractionInfoResponse = new(interaction.GetInteractionInfoResponse)
+		GetInteractionInfoResponse.TotalFavorited = 0
+		GetInteractionInfoResponse.WorkCount = 0
+		GetInteractionInfoResponse.FavoriteCount = 0
+	}
 	resp.StatusCode = 0
 	resp.StatusMsg = new(string)
 	*resp.StatusMsg = "success"
 	resp.User = &core.User{
-		Id:            userId,
-		Name:          res.Name,
-		FollowCount:   &res2.FollowCount,
-		FollowerCount: &res2.FollowerCount,
-		IsFollow:      res2.IsFollow,
+		Id:             userId,
+		Name:           res.Name,
+		FollowCount:    &res2.FollowCount,
+		FollowerCount:  &res2.FollowerCount,
+		IsFollow:       res2.IsFollow,
+		TotalFavorited: GetInteractionInfoResponse.TotalFavorited,
+		WorkCount:      GetInteractionInfoResponse.WorkCount,
+		FavoriteCount:  GetInteractionInfoResponse.FavoriteCount,
 	}
 	c.JSON(consts.StatusOK, resp)
 }

@@ -103,14 +103,17 @@ func (s *BasicsServiceImpl) GetVideo(ctx context.Context, req *core.GetVideoRequ
 	} else {
 		latest = time.Unix(latestTime, 0)
 	}
-	videos, err := query.Q.Video.Order(query.Video.CreatedAt).Where(query.Video.CreatedAt.Lt(latest)).Limit(30).Find()
+	videos, err := query.Q.Video.Where(query.Video.CreatedAt.Lt(latest)).Order(query.Video.CreatedAt.Desc()).Limit(30).Find()
 	if err != nil {
 		log.Printf("getvideo failed time:%v err:%v", latest, err)
 		return nil, err
 	}
 
 	videoList := make([]*core.Video, 0, len(videos))
-	nextTime := latest
+	var nextTime int64
+	if len(videos) != 0 {
+		nextTime = videos[len(videos)-1].CreatedAt.UnixMilli()
+	}
 	for i := 0; i < len(videos); i++ {
 		user, err := query.Q.User.Where(query.User.ID.Eq(videos[i].UserId)).First()
 		if err != nil {
@@ -124,16 +127,16 @@ func (s *BasicsServiceImpl) GetVideo(ctx context.Context, req *core.GetVideoRequ
 			CoverUrl: videos[i].CoverUrl,
 			Title:    videos[i].Title,
 		})
-		if videos[i].CreatedAt.Before(nextTime) {
-			nextTime = videos[i].CreatedAt
-		}
+		//if videos[i].CreatedAt.Before(nextTime) {
+		//	nextTime = videos[i].CreatedAt
+		//}
 	}
 
 	return &core.GetVideoResponse{
 		StatusCode: 0,
 		StatusMsg:  "success",
 		VideoList:  videoList,
-		NextTime:   nextTime.Unix(),
+		NextTime:   nextTime,
 	}, nil
 }
 
@@ -374,11 +377,47 @@ func (s *BasicsServiceImpl) GetVideoInfoById(ctx context.Context, req *core.GetV
 	videoId := req.VideoId
 	video, err := query.Q.Video.Where(query.Video.ID.Eq(uint(videoId))).First()
 	if err != nil {
-		log.Printf("query failed videoId:%d, err:%v", videoId, err)
+		klog.Infof("query failed videoId:%d, err:%v", videoId, err)
 		return nil, err
 	}
 	return &core.GetVideoByIdResponse{
 		Id:    int64(video.ID),
 		Title: video.Title,
 	}, nil
+}
+
+// GetVideoCount implements the BasicsServiceImpl interface.
+func (s *BasicsServiceImpl) GetVideoCount(ctx context.Context, req *core.VideoCountRequest) (resp *core.VideoCountResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
+	userId := req.UserId
+	count, err := query.Video.Where(query.Video.UserId.Eq(uint(userId))).Count()
+	if err != nil {
+		klog.Infof("query failed user video count:%d, err:%v", userId, err)
+		return nil, err
+	}
+	return &core.VideoCountResponse{WorkCount: count}, nil
+}
+
+// GetUserVideoIds implements the BasicsServiceImpl interface.
+func (s *BasicsServiceImpl) GetUserVideoIds(ctx context.Context, req *core.UserVideoIdsRequest) (resp *core.UserVideoIdsResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
+	userId := req.UserId
+	videos, err := query.Video.Select(query.Video.ID).Where(query.Video.UserId.Eq(uint(userId))).Find()
+	if err != nil {
+		klog.Infof("query failed user video ids:%d, err:%v", userId, err)
+		return nil, err
+	}
+	videoIds := make([]int64, 0, len(videos))
+	if len(videos) > 0 {
+		for _, video := range videos {
+			videoIds = append(videoIds, int64(video.ID))
+		}
+	}
+	return &core.UserVideoIdsResponse{VideoIdList: videoIds}, nil
 }

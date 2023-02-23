@@ -20,6 +20,8 @@ type Client interface {
 	GetVideosByUserId(ctx context.Context, Req *core.GetVideosByUserIdRequest, callOptions ...callopt.Option) (r *core.GetVideosByUserIdResponse, err error)
 	GetVideoListByIds(ctx context.Context, Req *core.GetVideoListByIdsRequest, callOptions ...callopt.Option) (r *core.GetVideoListByIdsResponse, err error)
 	GetUserListByIds(ctx context.Context, Req *core.GetUserListByIdsRequest, callOptions ...callopt.Option) (r *core.GetUserListByIdsResponse, err error)
+	GetVideoCount(ctx context.Context, Req *core.VideoCountRequest, callOptions ...callopt.Option) (r *core.VideoCountResponse, err error)
+	GetUserVideoIds(ctx context.Context, Req *core.UserVideoIdsRequest, callOptions ...callopt.Option) (r *core.UserVideoIdsResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -94,4 +96,14 @@ func (p *kBasicsServiceClient) GetVideoListByIds(ctx context.Context, Req *core.
 func (p *kBasicsServiceClient) GetUserListByIds(ctx context.Context, Req *core.GetUserListByIdsRequest, callOptions ...callopt.Option) (r *core.GetUserListByIdsResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetUserListByIds(ctx, Req)
+}
+
+func (p *kBasicsServiceClient) GetVideoCount(ctx context.Context, Req *core.VideoCountRequest, callOptions ...callopt.Option) (r *core.VideoCountResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetVideoCount(ctx, Req)
+}
+
+func (p *kBasicsServiceClient) GetUserVideoIds(ctx context.Context, Req *core.UserVideoIdsRequest, callOptions ...callopt.Option) (r *core.UserVideoIdsResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetUserVideoIds(ctx, Req)
 }

@@ -122,6 +122,15 @@ message GetCommentByIdResponse {
   int64 videoId = 6;
 }
 
+message GetInteractionInfoRequest {
+  int64 user_id = 1; //用户id
+}
+message GetInteractionInfoResponse {
+  int64 total_favorited = 1;
+  int64 work_count = 2;
+  int64 favorite_count = 3;
+}
+
 service InteractionService {
   rpc AddVideoFavorite(AddVideoFavoriteRequest) returns(AddVideoFavoriteResponse);
   rpc CancelVideoFavorite(CancelVideoFavoriteRequest) returns(CancelVideoFavoriteResponse);
@@ -135,4 +144,6 @@ service InteractionService {
   rpc GetVideoCommentCount(GetVideoCommentCountRequest) returns(GetVideoCommentCountResponse);
   rpc IsFavorite(IsFavoriteRequest) returns(IsFavoriteResponse);
   rpc GetCommentById(GetCommentByIdRequest) returns(GetCommentByIdResponse);
+  //获取InteractionInfo
+  rpc GetInteractionInfo(GetInteractionInfoRequest) returns(GetInteractionInfoResponse);
 }
