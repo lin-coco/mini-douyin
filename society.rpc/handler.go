@@ -270,6 +270,7 @@ func (s *SocietyServiceImpl) SocietyInfo(ctx context.Context, req *second.Societ
 		log.Printf("userId:%d query follower count failed err:%v", userId, err)
 		return nil, err
 	}
+	Q.Relation.Where(query.Relation.FromUserId.Eq(uint(myId)))
 	count, err := Q.Relation.Where(query.Relation.FromUserId.Eq(uint(myId)), query.Relation.ToUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Count()
 	if err != nil {
 		log.Printf("myId:%d userId:%d query relation count failed err:%v", myId, userId, err)
@@ -372,13 +373,14 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 	messages := make([]*second.Message, 0, len(messageChats))
 	redMsgs := make([]string, 0, len(messageChats))
 	for _, chat := range messageChats {
-		createTime := chat.CreatedAt.Format("2006-01-02 15:04")
+		createTimeFormat := chat.CreatedAt.Format("2006-01-02 15:04")
 		msg := &second.Message{
-			Id:         int64(chat.ID),
-			FromUserId: int64(chat.FromUserId),
-			ToUserId:   int64(chat.ToUserId),
-			Content:    chat.MsgContent,
-			CreateTime: &createTime,
+			Id:               int64(chat.ID),
+			FromUserId:       int64(chat.FromUserId),
+			ToUserId:         int64(chat.ToUserId),
+			Content:          chat.MsgContent,
+			CreateTime:       chat.CreatedAt.UnixMilli(),
+			CreateTimeFormat: &createTimeFormat,
 		}
 		messages = append(messages, msg)
 		msgByte, _ := json.Marshal(msg)
@@ -421,14 +423,15 @@ func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.Messag
 	//redis
 	result, _ := RedisDB.Exists(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId)).Result()
 	if result > 0 {
-		createTime := m.CreatedAt.Format("2006-01-02 15:04")
+		createTimeFormat := m.CreatedAt.Format("2006-01-02 15:04")
 		//存在
 		sM := &second.Message{
-			Id:         int64(m.ID),
-			FromUserId: int64(m.FromUserId),
-			ToUserId:   int64(m.ToUserId),
-			Content:    m.MsgContent,
-			CreateTime: &createTime,
+			Id:               int64(m.ID),
+			FromUserId:       int64(m.FromUserId),
+			ToUserId:         int64(m.ToUserId),
+			Content:          m.MsgContent,
+			CreateTime:       m.CreatedAt.UnixMilli(),
+			CreateTimeFormat: &createTimeFormat,
 		}
 		bytes, _ := json.Marshal(sM)
 		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), string(bytes))
@@ -436,14 +439,15 @@ func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.Messag
 	}
 	result, _ = RedisDB.Exists(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", friendUserId, myUserId)).Result()
 	if result > 0 {
-		createTime := m.CreatedAt.Format("2006-01-02 15:04")
+		createTimeFormat := m.CreatedAt.Format("2006-01-02 15:04")
 		//存在
 		sM := &second.Message{
-			Id:         int64(m.ID),
-			FromUserId: int64(m.FromUserId),
-			ToUserId:   int64(m.ToUserId),
-			Content:    m.MsgContent,
-			CreateTime: &createTime,
+			Id:               int64(m.ID),
+			FromUserId:       int64(m.FromUserId),
+			ToUserId:         int64(m.ToUserId),
+			Content:          m.MsgContent,
+			CreateTime:       m.CreatedAt.UnixMilli(),
+			CreateTimeFormat: &createTimeFormat,
 		}
 		bytes, _ := json.Marshal(sM)
 		RedisDB.RPush(ctx, fmt.Sprintf("society.rpc:messagechat:userId(%d|%d)", myUserId, friendUserId), string(bytes))

@@ -374,3 +374,43 @@ func checkReq(req interface{}) error {
 	}
 	return nil
 }
+
+// GetInteractionInfo implements the InteractionServiceImpl interface.
+func (s *InteractionServiceImpl) GetInteractionInfo(ctx context.Context, req *first.GetInteractionInfoRequest) (resp *first.GetInteractionInfoResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
+	userId := req.UserId
+	//喜欢数
+	favoriteCount, err := Q.UserFavourite.Where(Q.UserFavourite.UserId.Eq(uint(userId)), Q.UserFavourite.Status.Eq(1)).Count()
+	if err != nil {
+		klog.Infof("query favorite count failed err:%v", err)
+		return nil, err
+	}
+	//作品数
+	GetUserVideoIdsResponse, err := BasicsService.GetUserVideoIds(ctx, &core.UserVideoIdsRequest{UserId: userId})
+	if err != nil {
+		klog.Infof("BasicsService failed err:%v", err)
+		return nil, err
+	}
+	var workCount int64
+	var totalFavorited int64
+	if GetUserVideoIdsResponse != nil {
+		videoIdList := GetUserVideoIdsResponse.VideoIdList
+		workCount = int64(len(videoIdList))
+
+		if workCount != 0 {
+			videoIdListUInt := make([]uint, 0, len(videoIdList))
+			for _, videoId := range videoIdList {
+				videoIdListUInt = append(videoIdListUInt, uint(videoId))
+			}
+			totalFavorited, err = Q.UserFavourite.Where(Q.UserFavourite.VideoId.In(videoIdListUInt...), Q.UserFavourite.Status.Eq(1)).Count()
+			if err != nil {
+				klog.Infof("query total favorited failed err:%v", err)
+				return nil, err
+			}
+		}
+	}
+	return &first.GetInteractionInfoResponse{FavoriteCount: favoriteCount, WorkCount: workCount, TotalFavorited: totalFavorited}, nil
+}

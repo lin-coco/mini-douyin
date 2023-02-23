@@ -21,6 +21,7 @@ type Client interface {
 	GetVideoCommentCount(ctx context.Context, Req *first.GetVideoCommentCountRequest, callOptions ...callopt.Option) (r *first.GetVideoCommentCountResponse, err error)
 	IsFavorite(ctx context.Context, Req *first.IsFavoriteRequest, callOptions ...callopt.Option) (r *first.IsFavoriteResponse, err error)
 	GetCommentById(ctx context.Context, Req *first.GetCommentByIdRequest, callOptions ...callopt.Option) (r *first.GetCommentByIdResponse, err error)
+	GetInteractionInfo(ctx context.Context, Req *first.GetInteractionInfoRequest, callOptions ...callopt.Option) (r *first.GetInteractionInfoResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -100,4 +101,9 @@ func (p *kInteractionServiceClient) IsFavorite(ctx context.Context, Req *first.I
 func (p *kInteractionServiceClient) GetCommentById(ctx context.Context, Req *first.GetCommentByIdRequest, callOptions ...callopt.Option) (r *first.GetCommentByIdResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetCommentById(ctx, Req)
+}
+
+func (p *kInteractionServiceClient) GetInteractionInfo(ctx context.Context, Req *first.GetInteractionInfoRequest, callOptions ...callopt.Option) (r *first.GetInteractionInfoResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetInteractionInfo(ctx, Req)
 }

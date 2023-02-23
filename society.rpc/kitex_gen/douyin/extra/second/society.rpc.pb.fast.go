@@ -694,6 +694,11 @@ func (x *Message) FastRead(buf []byte, _type int8, number int32) (offset int, er
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 6:
+		offset, err = x.fastReadField6(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -728,8 +733,13 @@ func (x *Message) fastReadField4(buf []byte, _type int8) (offset int, err error)
 }
 
 func (x *Message) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+	x.CreateTime, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *Message) fastReadField6(buf []byte, _type int8) (offset int, err error) {
 	tmp, offset, err := fastpb.ReadString(buf, _type)
-	x.CreateTime = &tmp
+	x.CreateTimeFormat = &tmp
 	return offset, err
 }
 
@@ -1374,6 +1384,7 @@ func (x *Message) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
 	offset += x.fastWriteField5(buf[offset:])
+	offset += x.fastWriteField6(buf[offset:])
 	return offset
 }
 
@@ -1410,10 +1421,18 @@ func (x *Message) fastWriteField4(buf []byte) (offset int) {
 }
 
 func (x *Message) fastWriteField5(buf []byte) (offset int) {
-	if x.CreateTime == nil {
+	if x.CreateTime == 0 {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 5, *x.CreateTime)
+	offset += fastpb.WriteInt64(buf[offset:], 5, x.CreateTime)
+	return offset
+}
+
+func (x *Message) fastWriteField6(buf []byte) (offset int) {
+	if x.CreateTimeFormat == nil {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 6, *x.CreateTimeFormat)
 	return offset
 }
 
@@ -2017,6 +2036,7 @@ func (x *Message) Size() (n int) {
 	n += x.sizeField3()
 	n += x.sizeField4()
 	n += x.sizeField5()
+	n += x.sizeField6()
 	return n
 }
 
@@ -2053,10 +2073,18 @@ func (x *Message) sizeField4() (n int) {
 }
 
 func (x *Message) sizeField5() (n int) {
-	if x.CreateTime == nil {
+	if x.CreateTime == 0 {
 		return n
 	}
-	n += fastpb.SizeString(5, *x.CreateTime)
+	n += fastpb.SizeInt64(5, x.CreateTime)
+	return n
+}
+
+func (x *Message) sizeField6() (n int) {
+	if x.CreateTimeFormat == nil {
+		return n
+	}
+	n += fastpb.SizeString(6, *x.CreateTimeFormat)
 	return n
 }
 
@@ -2261,6 +2289,7 @@ var fieldIDToName_Message = map[int32]string{
 	3: "FromUserId",
 	4: "Content",
 	5: "CreateTime",
+	6: "CreateTimeFormat",
 }
 
 var fieldIDToName_MessageSendRequest = map[int32]string{
