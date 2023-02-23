@@ -16,6 +16,7 @@ require (
 )
 
 require (
+	github.com/adeven/go-wrk v0.0.0-20200418124433-63e11dd31fef // indirect
 	github.com/apache/thrift v0.17.0 // indirect
 	github.com/bytedance/gopkg v0.0.0-20220531084716-665b4f21126f // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect

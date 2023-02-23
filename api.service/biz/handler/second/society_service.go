@@ -155,7 +155,12 @@ func RelationFollowerList(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, "userId is null"))
 		return
 	}
-	followerListResponse, err := rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId, PageNo: *req.PageNo, PageSize: *req.PageSize})
+	var followerListResponse *society.FollowerListResponse
+	if req.PageNo == nil || req.PageSize == nil {
+		followerListResponse, err = rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId})
+	} else {
+		followerListResponse, err = rpc.SocietyService.FollowerList(ctx, &society.FollowerListRequest{UserId: userId, PageNo: *req.PageNo, PageSize: *req.PageSize})
+	}
 	if err != nil {
 		hlog.Infof("SocietyService failed err:%v", err)
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
@@ -270,11 +275,21 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
 		return
 	}
-	messageChatResponse, err := rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId, StartTime: *req.StartTime, EndTime: *req.EndTime})
-	if err != nil {
-		hlog.Infof("SocietyService failed err:%v", err)
-		c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
-		return
+	var messageChatResponse *society.MessageChatResponse
+	if req.StartTime == nil || req.EndTime == nil {
+		messageChatResponse, err = rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId})
+		if err != nil {
+			hlog.Infof("SocietyService failed err:%v", err)
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+			return
+		}
+	} else {
+		messageChatResponse, err = rpc.SocietyService.MessageChat(ctx, &society.MessageChatRequest{MyUserId: myId, FriendUserId: toUserId, StartTime: *req.StartTime, EndTime: *req.EndTime})
+		if err != nil {
+			hlog.Infof("SocietyService failed err:%v", err)
+			c.JSON(consts.StatusBadRequest, returnErrorResponse(consts.StatusBadRequest, err.Error()))
+			return
+		}
 	}
 	messageList := messageChatResponse.MessageList
 	messages := make([]*second.Message, 0, len(messageList))

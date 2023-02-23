@@ -8,7 +8,6 @@ import (
 	"api.service/biz/sentinel"
 	"api.service/biz/vd"
 	"github.com/cloudwego/hertz/pkg/app/server"
-	prometheus "github.com/hertz-contrib/monitor-prometheus"
 )
 
 func Init() {
@@ -27,7 +26,8 @@ func Init() {
 func main() {
 	Init()
 	//监控
-	h := server.Default(server.WithTracer(prometheus.NewServerTracer(":9091", "/hertz")))
+	h := server.Default(server.WithHostPorts(":8888"))
+	//h := server.Default(server.WithHostPorts(":9999"))
 	register(h)
 	h.Spin()
 }

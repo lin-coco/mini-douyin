@@ -13,18 +13,19 @@ import (
 var BasicsService basicsservice.Client
 
 func initBasicsServiceRpc() {
-	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
+	//r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
+	r, err := etcd.NewEtcdResolver([]string{"101.132.182.230:2379"})
 	if err != nil {
 		panic(err)
 	}
 	c, err := basicsservice.NewClient(
 		"basics.rpc",
-		client.WithMuxConnection(1),                       // mux
-		client.WithRPCTimeout(3*time.Second),              // rpc timeout
-		client.WithConnectTimeout(50*time.Millisecond),    // conn timeout
-		client.WithFailureRetry(retry.NewFailurePolicy()), // retry
-		client.WithSuite(trace.NewDefaultClientSuite()),   // tracer
-		client.WithResolver(r),                            // resolver
+		client.WithMuxConnection(1),                                // mux
+		client.WithRPCTimeout(3*time.Second),                       // rpc timeout
+		client.WithConnectTimeout(50*time.Millisecond),             // conn timeout
+		client.WithFailureRetry(retry.NewFailurePolicy()),          // retry
+		client.WithSuite(trace.NewDefaultClientSuite()),            // tracer
+		client.WithResolver(r),                                     // resolver
 		client.WithLoadBalancer(loadbalance.NewWeightedBalancer())) // 负载均衡)
 
 	if err != nil {
