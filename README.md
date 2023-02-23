@@ -3,9 +3,13 @@
 
 抖声APP服务端的设计与实现
 
-项目地址：https://github.com/linkXue/mini-douyin
+[github项目地址](https://github.com/linkXue/mini-douyin)
 
-项目设计文档：
+[项目设计文档](./极简抖音-xys.md)
+
+[飞书文档](https://tmz2eg926y.feishu.cn/docx/RbrldrCGfo3zO2xv5Zbcn6tTn8d?from=space_persnoal_filelist)
+
+[演示视频](https://mini-douyin-basics.oss-cn-nanjing.aliyuncs.com/uservideo/7a4cbe4b128c5f4b5c085a2523c36f60.mp4)
 
 # 二、项目实现
 
@@ -33,11 +37,11 @@
 1. go语言
 2. Hertz + Kitex + Gorm
 
-## 3.2 架构设计
+## 2.2 架构设计
 
 > 可以补充场景分析环节，明确要解决的问题和前提假设，比如预计0.5%的用户属于大V，粉丝很多，也会经常上传视频，当前架构的解决方案是xxx。
 
-### 3.2.1 微服务设计
+### 2.2.1 微服务设计
 
 一个api服务，三个rpc服务
 
@@ -64,3 +68,24 @@
 3. 在本地换端口号启动3个etcd模拟注册中心集群
 4. 三台mysql服务器使用的云服务器，不在本地
 5. Cache使用两台redis实现主从，不在本地
+
+## 2.3 快速部署
+
+编译时的配置是远程的etcd、redis、mysql，所以可以直接在linux系统上运行
+
+```Bash
+git clone git@github.com:linkXue/mini-douyin.git
+...
+cd mini-douyin/api.service
+go build
+...
+cd mini-douyin/basics.rpc
+go build
+...
+cd mini-douyin/interaction.rpc
+go build
+...
+cd mini-douyin/society.rpc
+go build
+...
+```
