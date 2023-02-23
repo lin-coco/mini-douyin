@@ -9,6 +9,8 @@
 
 [飞书文档](https://tmz2eg926y.feishu.cn/docx/RbrldrCGfo3zO2xv5Zbcn6tTn8d?from=space_persnoal_filelist)
 
+[演示视频](https://mini-douyin-basics.oss-cn-nanjing.aliyuncs.com/uservideo/7a4cbe4b128c5f4b5c085a2523c36f60.mp4)
+
 # 二、项目实现
 
 ## 2.1 技术选型与相关开发文档
