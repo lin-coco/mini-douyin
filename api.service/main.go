@@ -25,7 +25,6 @@ func Init() {
 
 func main() {
 	Init()
-	//监控
 	h := server.Default(server.WithHostPorts(":8888"))
 	//h := server.Default(server.WithHostPorts(":9999"))
 	register(h)
