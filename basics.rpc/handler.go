@@ -256,7 +256,7 @@ func (s *BasicsServiceImpl) CheckUser(ctx context.Context, req *core.CheckUserRe
 	}
 	user, _ := query.Q.User.Where(query.User.Name.Eq(username)).First()
 	if user == nil {
-		log.Printf("query user failed username:%s err:%v", username, err)
+		klog.Infof("query user failed username:%s err:%v", username, err)
 		err := RedisDB.LPush(ctx, fmt.Sprintf("basics.rpc:usernotexist"), username).Err()
 		RedisDB.Expire(ctx, fmt.Sprintf("basics.rpc:usernotexist"), time.Hour)
 		if err != nil {

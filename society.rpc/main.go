@@ -39,7 +39,8 @@ func main() {
 	InitRedis()
 	//LogInit()
 	//注册etcd
-	registry, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
+	//registry, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
+	registry, err := etcd.NewEtcdRegistry([]string{"101.132.182.230:2379"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,6 +48,7 @@ func main() {
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "society.rpc"}),
 		server.WithRegistry(registry),
 		server.WithServiceAddr(addr{"tcp", "127.0.0.1:8892"}),
+		//server.WithServiceAddr(addr{"tcp", "127.0.0.1:9892"}),
 	)
 	err = svr.Run()
 	if err != nil {
@@ -90,7 +92,8 @@ func DBInit() {
 }
 
 func BasicsRPCInit() {
-	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
+	//r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2479", "127.0.0.1:2579", "127.0.0.1:2679"})
+	r, err := etcd.NewEtcdResolver([]string{"101.132.182.230:2379"})
 	if err != nil {
 		panic(err)
 	}

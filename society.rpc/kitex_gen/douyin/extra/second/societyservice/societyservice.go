@@ -30,6 +30,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"MessageChat":         kitex.NewMethodInfo(messageChatHandler, newMessageChatArgs, newMessageChatResult, false),
 		"MessageSend":         kitex.NewMethodInfo(messageSendHandler, newMessageSendArgs, newMessageSendResult, false),
 		"SocietyInfo":         kitex.NewMethodInfo(societyInfoHandler, newSocietyInfoArgs, newSocietyInfoResult, false),
+		"IsFriend":            kitex.NewMethodInfo(isFriendHandler, newIsFriendArgs, newIsFriendResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "douyin.extra.second",
@@ -1205,6 +1206,151 @@ func (p *SocietyInfoResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func isFriendHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(second.IsFriendRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(second.SocietyService).IsFriend(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *IsFriendArgs:
+		success, err := handler.(second.SocietyService).IsFriend(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*IsFriendResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newIsFriendArgs() interface{} {
+	return &IsFriendArgs{}
+}
+
+func newIsFriendResult() interface{} {
+	return &IsFriendResult{}
+}
+
+type IsFriendArgs struct {
+	Req *second.IsFriendRequest
+}
+
+func (p *IsFriendArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(second.IsFriendRequest)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *IsFriendArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *IsFriendArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *IsFriendArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in IsFriendArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *IsFriendArgs) Unmarshal(in []byte) error {
+	msg := new(second.IsFriendRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var IsFriendArgs_Req_DEFAULT *second.IsFriendRequest
+
+func (p *IsFriendArgs) GetReq() *second.IsFriendRequest {
+	if !p.IsSetReq() {
+		return IsFriendArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *IsFriendArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type IsFriendResult struct {
+	Success *second.IsFriendResponse
+}
+
+var IsFriendResult_Success_DEFAULT *second.IsFriendResponse
+
+func (p *IsFriendResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(second.IsFriendResponse)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *IsFriendResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *IsFriendResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *IsFriendResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in IsFriendResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *IsFriendResult) Unmarshal(in []byte) error {
+	msg := new(second.IsFriendResponse)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *IsFriendResult) GetSuccess() *second.IsFriendResponse {
+	if !p.IsSetSuccess() {
+		return IsFriendResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *IsFriendResult) SetSuccess(x interface{}) {
+	p.Success = x.(*second.IsFriendResponse)
+}
+
+func (p *IsFriendResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -1290,6 +1436,16 @@ func (p *kClient) SocietyInfo(ctx context.Context, Req *second.SocietyInfoReques
 	_args.Req = Req
 	var _result SocietyInfoResult
 	if err = p.c.Call(ctx, "SocietyInfo", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) IsFriend(ctx context.Context, Req *second.IsFriendRequest) (r *second.IsFriendResponse, err error) {
+	var _args IsFriendArgs
+	_args.Req = Req
+	var _result IsFriendResult
+	if err = p.c.Call(ctx, "IsFriend", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

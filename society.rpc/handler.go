@@ -129,11 +129,21 @@ func (s *SocietyServiceImpl) FollowerList(ctx context.Context, req *second.Follo
 		return nil, err
 	}
 	userId := req.UserId
-	relations, err := Q.Relation.Where(query.Relation.ToUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Find()
-	if err != nil {
-		log.Printf("query follower failed userId:%d err:%v", userId, err)
-		return nil, err
+	var relations []*model.Relation
+	if req.PageNo == 0 && req.PageSize == 0 {
+		relations, err = Q.Relation.Where(query.Relation.ToUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Order(query.Relation.CreatedAt).Find()
+		if err != nil {
+			log.Printf("query follower failed userId:%d err:%v", userId, err)
+			return nil, err
+		}
+	} else {
+		relations, _, err = Q.Relation.Where(query.Relation.ToUserId.Eq(uint(userId)), query.Relation.RelType.Eq(1)).Order(query.Relation.CreatedAt).FindByPage(int(req.PageNo), int(req.PageSize))
+		if err != nil {
+			log.Printf("query follower failed userId:%d err:%v", userId, err)
+			return nil, err
+		}
 	}
+
 	if len(relations) == 0 {
 		return &second.FollowerListResponse{
 			StatusCode: 0,
@@ -296,7 +306,8 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 		} else {
 			klog.Infof("redis failed society.rpc:messagechat")
 		}
-	} else {
+	}
+	if len(result) != 0 {
 		messages := make([]*second.Message, 0, len(result))
 		for _, ms := range result {
 			m := new(second.Message)
@@ -320,7 +331,8 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 		} else {
 			klog.Infof("redis failed society.rpc:messagechat")
 		}
-	} else {
+	}
+	if len(result) != 0 {
 		messages := make([]*second.Message, 0, len(result))
 		for _, ms := range result {
 			m := new(second.Message)
@@ -337,8 +349,13 @@ func (s *SocietyServiceImpl) MessageChat(ctx context.Context, req *second.Messag
 			MessageList: messages,
 		}, nil
 	}
-
-	messageChats, err := Q.MessageChat.Where(query.MessageChat.FromUserId.In(uint(myUserId), uint(friendUserId)), query.MessageChat.ToUserId.In(uint(myUserId), uint(friendUserId))).Order(query.MessageChat.CreatedAt).Find()
+	var messageChats []*model.MessageChat
+	if req.StartTime == 0 && req.EndTime == 0 {
+		messageChats, err = Q.MessageChat.Where(query.MessageChat.FromUserId.In(uint(myUserId), uint(friendUserId)), query.MessageChat.ToUserId.In(uint(myUserId), uint(friendUserId))).Order(query.MessageChat.CreatedAt).Find()
+	} else {
+		//startTime 与 endTime 不为零值
+		messageChats, err = Q.MessageChat.Where(query.MessageChat.FromUserId.In(uint(myUserId), uint(friendUserId)), query.MessageChat.ToUserId.In(uint(myUserId), uint(friendUserId)), query.MessageChat.CreatedAt.Gt(time.Unix(req.StartTime, 0)), query.MessageChat.CreatedAt.Lt(time.Unix(req.EndTime, 0))).Order(query.MessageChat.CreatedAt).Find()
+	}
 	if err != nil {
 		log.Printf("myId:%d friendId:%d query message chat failed err:%v", myUserId, friendUserId, err)
 		return nil, err
@@ -436,6 +453,28 @@ func (s *SocietyServiceImpl) MessageSend(ctx context.Context, req *second.Messag
 		StatusCode: 0,
 		StatusMsg:  "success",
 	}, nil
+}
+
+// IsFriend implements the SocietyServiceImpl interface.
+func (s *SocietyServiceImpl) IsFriend(ctx context.Context, req *second.IsFriendRequest) (resp *second.IsFriendResponse, err error) {
+	err = checkReq(req)
+	if err != nil {
+		return nil, err
+	}
+	r1, err := Q.Relation.Where(Q.Relation.FromUserId.Eq(uint(req.MyUserId)), Q.Relation.ToUserId.Eq(uint(req.FriendUserId)), Q.Relation.RelType.Eq(1)).First()
+	if err != nil {
+		klog.Infof("%d %d not friend", req.MyUserId, req.FriendUserId)
+		return nil, errors.New(fmt.Sprintf("%d %d not friend", req.MyUserId, req.FriendUserId))
+	}
+	r2, err := Q.Relation.Where(Q.Relation.FromUserId.Eq(uint(req.FriendUserId)), Q.Relation.ToUserId.Eq(uint(req.MyUserId)), Q.Relation.RelType.Eq(1)).First()
+	if err != nil {
+		klog.Infof("%d %d not friend", req.MyUserId, req.FriendUserId)
+		return nil, errors.New(fmt.Sprintf("%d %d not friend", req.MyUserId, req.FriendUserId))
+	}
+	if r1 != nil && r2 != nil {
+		return &second.IsFriendResponse{StatusCode: 0, StatusMsg: "success"}, nil
+	}
+	return nil, errors.New(fmt.Sprintf("%d %d not friend", req.MyUserId, req.FriendUserId))
 }
 
 // 校验req是否为空，空值直接返回err
