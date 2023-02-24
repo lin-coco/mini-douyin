@@ -45,7 +45,7 @@
 
 一个api服务，三个rpc服务
 
-![image-20230223222503371](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230223222503371.png)
+![image-架构图](https://typora-img-xue.oss-cn-beijing.aliyuncs.com/img/image-20230223222503371.png)
 
 项目服务
 
