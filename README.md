@@ -11,6 +11,8 @@
 
 [演示视频](https://mini-douyin-basics.oss-cn-nanjing.aliyuncs.com/uservideo/7a4cbe4b128c5f4b5c085a2523c36f60.mp4)
 
+[测试接口文档](https://console-docs.apipost.cn/preview/86470cab8b60e7f1/b2552e1674d9de29?target_id=59b3193a-d504-4efe-957f-90368232e307)
+
 # 二、项目实现
 
 ## 2.1 技术选型与相关开发文档
