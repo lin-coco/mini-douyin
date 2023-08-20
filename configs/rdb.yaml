@@ -1,0 +1,5 @@
+database:
+  separation: true # 配置是否使用读写分离，方便改配置切换
+  master: "xys:syr1120@xys.com@tcp(10.211.55.11:3306)/mini_douyin?charset=utf8mb4&parseTime=true&loc=Local"
+  slave:
+    - "xys:syr1120@xys.com@tcp(10.211.55.12:3306)/mini_douyin?charset=utf8mb4&parseTime=True&loc=Local"

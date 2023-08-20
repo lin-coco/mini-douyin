@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package douyin.society;
+option go_package = "douyin/society";
+
+message ConcernActionRequest {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+}
+message ConcernActionResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+}
+message CancelConcernActionRequest {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+}
+message CancelConcernActionResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+}
+
+message FollowListRequest {
+  int64 user_id = 1;
+}
+message FollowListResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated User user_list = 3;
+}
+message User {
+  int64 id = 1;
+  string name = 2;
+  int64 follow_count = 3; //关注总数
+  int64 follower_count = 4; //粉丝总数
+  bool is_follow = 5; //true 已关注 false-未关注
+}
+
+message FollowerListRequest {
+  int64 user_id = 1;
+  int64 page_no = 2;//第几页
+  int64 page_size = 3;//页的大小
+}
+message FollowerListResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated User user_list = 3;
+}
+
+message FriendListRequest {
+  int64 user_id = 1;
+}
+message FriendListResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated User user_list = 3;
+}
+
+message SocietyInfoRequest {
+  int64 my_id = 1;
+  int64 user_id = 2;
+}
+message SocietyInfoResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  int64 follow_count = 3; //关注总数
+  int64 follower_count = 4; //粉丝总数
+  bool is_follow = 5; //true 已关注 false-未关注
+}
+
+message MessageChatRequest {
+  int64 my_user_id = 1; //我的id
+  int64 friend_user_id = 2; //朋友的id
+  int64 start_time = 3;
+  int64 end_time = 4;
+}
+message MessageChatResponse {
+  int32 status_code = 1; //状态码，0-成功，其他值失败
+  string status_msg = 2; //返回状态描述
+  repeated Message message_list = 3; // 消息列表
+}
+
+message Message {
+  int64 id = 1; // 消息id
+  int64 to_user_id = 2; // 该消息接收者的id
+  int64 from_user_id =3; // 该消息发送者的id
+  string content = 4; // 消息内容
+  int64 create_time = 5; //消息创建时间戳
+  optional string create_time_format = 6; // 消息创建时间
+}
+message MessageSendRequest {
+  int64 my_user_id = 1; // 我的id
+  int64 friend_user_id = 2; // 对方用户id
+  string content = 4; // 消息内容
+}
+
+message MessageSendResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  string status_msg = 2; // 返回状态描述
+}
+
+message IsFriendRequest {
+  int64 my_user_id = 1; // 我的id
+  int64 friend_user_id = 2; // 对方用户id
+}
+message IsFriendResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  string status_msg = 2; // 返回状态描述
+}
+
+service SocietyService{
+  rpc ConcernAction(ConcernActionRequest) returns(ConcernActionResponse);
+  rpc CancelConcernAction(CancelConcernActionRequest) returns(CancelConcernActionResponse);
+  rpc FollowList(FollowListRequest) returns(FollowListResponse);
+  rpc FollowerList(FollowerListRequest) returns(FollowerListResponse);
+  rpc FriendList(FriendListRequest) returns(FriendListResponse);
+  //chat rpc
+  rpc MessageChat(MessageChatRequest) returns(MessageChatResponse);
+  rpc MessageSend(MessageSendRequest) returns(MessageSendResponse);
+  //api.service needed
+  rpc SocietyInfo(SocietyInfoRequest) returns(SocietyInfoResponse);
+  rpc IsFriend(IsFriendRequest) returns(IsFriendResponse);
+}
