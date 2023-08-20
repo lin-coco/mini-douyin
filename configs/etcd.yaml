@@ -1,0 +1,4 @@
+etcd:
+  endpoints:
+    - http://10.211.55.11:2379
+  dialTimeout: 10

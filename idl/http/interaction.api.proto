@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package http.douyin.interaction;
+option go_package="http/douyin/interaction";
+
+import "http.proto";
+
+message CommonResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  string status_msg = 2; // 返回状态描述
+}
+
+message DouyinFavoriteActionRequest {
+  string token = 1[(http.query)="token",(vd)="NotStringDefault($)"]; //用户鉴权token
+  int64 video_id = 2[(http.query)="video_id",(vd)="GreaterZero($)"]; //视频id
+  int32 action_type = 3[(http.query)="action_type",(vd)="NotNegative($)"]; //1-点赞，2-取消点赞
+}
+
+message DouyinFavoriteActionResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  optional string status_msg = 2; // 返回状态描述
+}
+
+message DouyinFavoriteListRequest {
+  int64 user_id = 1[(http.query)="user_id",(vd)="GreaterZero($)"]; // 用户id
+  string token = 2[(http.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
+}
+
+message DouyinFavoriteListResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  optional string status_msg = 2; // 返回状态描述
+  repeated Video video_list = 3; // 用户点赞视频列表
+}
+message Video {
+  int64 id = 1; // 视频唯一标识
+  User author = 2; // 视频作者信息
+  string play_url = 3; // 视频播放地址
+  string cover_url = 4; // 视频封面地址
+  int64 favorite_count = 5; // 视频的点赞总数
+  int64 comment_count = 6; // 视频的评论总数
+  bool is_favorite = 7; // true-已点赞，false-未点赞
+  string title = 8; // 视频标题
+}
+message User {
+  int64 id = 1; // 用户id
+  string name = 2; // 用户名称 29
+  optional int64 follow_count = 3; // 关注总数
+  optional int64 follower_count = 4; // 粉丝总数
+  bool is_follow = 5; // true-已关注，false-未关注
+}
+
+message DouyinCommentActionRequest {
+  string token = 1[(http.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
+  int64 video_id = 2[(http.query)="video_id",(vd)="GreaterZero($)"]; // 视频id
+  int32 action_type = 3[(http.query)="action_type",(vd)="NotNegative($)"]; // 1-发布评论，2-删除评论
+  optional string comment_text = 4[(http.query)="comment_text",(vd)="LargeText($)"]; // 用户填写的评论内容，在action_type=1的时候使用
+  optional int64 comment_id = 5[(http.query)="comment_id"]; // 要删除的评论id，在action_type=2的时候使用
+}
+message DouyinCommentActionResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  optional string status_msg = 2; // 返回状态描述
+  optional Comment comment = 3; // 评论成功返回评论内容，不需要重新拉取整个列表
+}
+message Comment {
+  int64 id = 1; // 视频评论id
+  User user =2; // 评论用户信息
+  string content = 3; // 评论内容
+  string create_date = 4; // 评论发布日期，格式 mm-dd
+}
+
+message DouyinCommentListRequest {
+  string token = 1[(http.query)="token",(vd)="NotStringDefault($)"]; // 用户鉴权token
+  int64 video_id = 2[(http.query)="video_id",(vd)="GreaterZero($)"]; // 视频id
+}
+message DouyinCommentListResponse {
+  int32 status_code = 1; // 状态码，0-成功，其他值-失败
+  optional string status_msg = 2; // 返回状态描述
+  repeated Comment comment_list = 3; // 评论列表
+}
+
+service InteractionService {
+  //赞操作
+  rpc FavoriteAction(DouyinFavoriteActionRequest) returns(DouyinFavoriteActionResponse) {
+    option (http.post) = "/douyin/favorite/action/";
+  }
+  //喜欢列表
+  rpc FavoriteList(DouyinFavoriteListRequest) returns(DouyinFavoriteListResponse) {
+    option (http.get) = "/douyin/favorite/list/";
+  }
+  //评论操作
+  rpc CommentAction(DouyinCommentActionRequest) returns(DouyinCommentActionResponse) {
+    option (http.post) = "/douyin/comment/action/";
+  }
+  //视频评论列表
+  rpc CommentList(DouyinCommentListRequest) returns(DouyinCommentListResponse) {
+    option (http.get) = "/douyin/comment/list/";
+  }
+}
