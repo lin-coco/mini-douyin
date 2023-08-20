@@ -7,7 +7,7 @@
 
 [项目设计文档](./极简抖音-xys.md)
 
-[飞书文档](https://tmz2eg926y.feishu.cn/docx/RbrldrCGfo3zO2xv5Zbcn6tTn8d?from=space_persnoal_filelist)
+[飞书答辩文档](https://tmz2eg926y.feishu.cn/docx/RbrldrCGfo3zO2xv5Zbcn6tTn8d?from=space_persnoal_filelist)
 
 [演示视频](https://mini-douyin-basics.oss-cn-nanjing.aliyuncs.com/uservideo/7a4cbe4b128c5f4b5c085a2523c36f60.mp4)
 
@@ -70,24 +70,3 @@
 3. 在本地换端口号启动3个etcd模拟注册中心集群
 4. 三台mysql服务器使用的云服务器，不在本地
 5. Cache使用两台redis实现主从，不在本地
-
-## 2.3 快速部署
-
-编译时的配置是远程的etcd、redis、mysql，所以可以直接在linux系统上运行
-
-```Bash
-git clone git@github.com:linkXue/mini-douyin.git
-...
-cd mini-douyin/api.service
-go build
-...
-cd mini-douyin/basics.rpc
-go build
-...
-cd mini-douyin/interaction.rpc
-go build
-...
-cd mini-douyin/society.rpc
-go build
-...
-```
