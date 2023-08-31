@@ -1,6 +1,6 @@
 oss:
-  endpoint: oss-cn-nanjing.aliyuncs.com
-  accessKey: "LTAI5tRDGdvUaKrWjGXL8gze"
-  accessSecret: "7kMl8m9cwfddzZa4PjB2rsGotz4hxX"
-  bucketName: mini-douyin-basics
-  baseUrl: https://mini-douyin-basics.oss-cn-nanjing.aliyuncs.com/
+  endpoint: 
+  accessKey: 
+  accessSecret: 
+  bucketName: 
+  baseUrl: 
