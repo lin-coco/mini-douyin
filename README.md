@@ -1,4 +1,9 @@
 # mini-douyin
+
+![byteimg](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dc7356248591460a96584a58fe036546~tplv-k3u1fbpfcp-watermark.image)
+
+奖项源地址: https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dc7356248591460a96584a58fe036546~tplv-k3u1fbpfcp-watermark.image
+
 # 一、项目介绍
 
 抖声APP服务端的设计与实现
